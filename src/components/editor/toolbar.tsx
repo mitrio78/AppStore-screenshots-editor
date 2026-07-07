@@ -26,6 +26,8 @@ import { LanguageSelect } from "./language-select";
 import { ProjectSwitcher } from "./project-switcher";
 import { ThemeToggle } from "./theme-toggle";
 
+export type EditorViewMode = "edit" | "row";
+
 type Props = {
   projectSlug: string;
   projectName: string;
@@ -43,6 +45,8 @@ type Props = {
   onExport: () => void;
   onResetAll: () => void;
   onResetDevice: () => void;
+  viewMode: EditorViewMode;
+  setViewMode: (mode: EditorViewMode) => void;
   exporting: string | null;
   savedAt: number | null;
   saveError: string | null;
@@ -165,6 +169,20 @@ export function Toolbar(props: Props) {
           </SelectContent>
         </Select>
       )}
+
+      <Tabs
+        value={props.viewMode}
+        onValueChange={(value) => props.setViewMode(value as EditorViewMode)}
+      >
+        <TabsList className="h-8 p-0.5" aria-label={m.toolbar.viewModeAria}>
+          <TabsTrigger value="edit" className="h-7 px-3 text-xs" disabled={props.busy}>
+            {m.toolbar.viewEdit}
+          </TabsTrigger>
+          <TabsTrigger value="row" className="h-7 px-3 text-xs" disabled={props.busy}>
+            {m.toolbar.viewStoreRow}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <SaveStatus savedAt={props.savedAt} saveError={props.saveError} />

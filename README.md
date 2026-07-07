@@ -80,6 +80,8 @@ available port.
   preserving the target text field style.
 - **Template application**: apply the active slide layout/template to the rest
   of the deck while preserving each slide's own text content.
+- **Store row preview**: view the full current deck as one horizontal store
+  carousel to judge the sequence visually.
 - **Editor localization**: switch the editor UI between English, Russian, and
   Japanese; the dictionary structure is ready for more languages.
 - **Localization**: text and screenshot paths support locales; screenshot paths

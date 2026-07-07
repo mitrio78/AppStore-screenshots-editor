@@ -118,6 +118,9 @@ const en = {
     portrait: "Portrait",
     landscape: "Landscape",
     exportTitle: "Export PNG/JPG at App Store sizes",
+    viewModeAria: "Editor view mode",
+    viewEdit: "Edit",
+    viewStoreRow: "Store row",
     exporting: (progress: string) => `Exporting ${progress}`,
     resetTitle: "Reset slides to defaults",
     resetAria: "Reset",
@@ -344,6 +347,10 @@ const en = {
   },
   preview: {
     landscape: "landscape",
+    storeRowTitle: "Store row",
+    storeRowEmptyTitle: "No slides to preview",
+    storeRowEmptyHint: "Add slides to see the store row preview.",
+    selectRowSlide: (index: number) => `Select slide ${index + 1}`,
   },
   editor: {
     loading: "Loading editor...",
@@ -452,6 +459,9 @@ const ru: Messages = {
     portrait: "Портрет",
     landscape: "Ландшафт",
     exportTitle: "Экспорт PNG/JPG в размерах App Store",
+    viewModeAria: "Режим просмотра редактора",
+    viewEdit: "Редактор",
+    viewStoreRow: "В ряд",
     exporting: (progress) => `Экспорт ${progress}`,
     resetTitle: "Сбросить слайды к значениям по умолчанию",
     resetAria: "Сброс",
@@ -677,6 +687,10 @@ const ru: Messages = {
   },
   preview: {
     landscape: "ландшафт",
+    storeRowTitle: "Витрина в ряд",
+    storeRowEmptyTitle: "Нет слайдов для просмотра",
+    storeRowEmptyHint: "Добавьте слайды, чтобы увидеть витрину в ряд.",
+    selectRowSlide: (index) => `Выбрать слайд ${index + 1}`,
   },
   editor: {
     loading: "Загрузка редактора...",
@@ -780,6 +794,9 @@ const ja: Messages = {
     portrait: "縦向き",
     landscape: "横向き",
     exportTitle: "App Store サイズで PNG/JPG を書き出し",
+    viewModeAria: "エディター表示モード",
+    viewEdit: "編集",
+    viewStoreRow: "ストア行",
     exporting: (progress) => `書き出し中 ${progress}`,
     resetTitle: "スライドを初期状態に戻す",
     resetAria: "リセット",
@@ -1005,6 +1022,10 @@ const ja: Messages = {
   },
   preview: {
     landscape: "横向き",
+    storeRowTitle: "ストア行",
+    storeRowEmptyTitle: "プレビューするスライドがありません",
+    storeRowEmptyHint: "スライドを追加するとストア行プレビューを確認できます。",
+    selectRowSlide: (index) => `スライド ${index + 1} を選択`,
   },
   editor: {
     loading: "エディターを読み込み中...",

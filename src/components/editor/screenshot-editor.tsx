@@ -31,12 +31,13 @@ import type {
 } from "@/lib/types";
 import { currentDeviceRect } from "./device-panel";
 import type { ClipboardMode, ElementPatch, LayerDir } from "./element-panel";
+import { DeckRowPreviewStage } from "./deck-row-preview-stage";
 import { ExportDialog, type ExportOptions } from "./export-dialog";
 import { Inspector } from "./inspector";
 import { PreviewStage } from "./preview-stage";
 import { Sidebar } from "./sidebar";
 import { SlideCanvas, getCanvas } from "./slide-canvas";
-import { Toolbar } from "./toolbar";
+import { Toolbar, type EditorViewMode } from "./toolbar";
 
 function isDeviceId(id: SelectableId): id is DeviceElementId {
   return id === "device" || id === "deviceSecondary";
@@ -245,6 +246,7 @@ export function ScreenshotEditor() {
   const [exportOpen, setExportOpen] = React.useState(false);
   const [ready, setReady] = React.useState(false);
   const [exportLocaleOverride, setExportLocaleOverride] = React.useState<string | null>(null);
+  const [viewMode, setViewMode] = React.useState<EditorViewMode>("edit");
   const [clipboardMode, setClipboardModeState] =
     React.useState<ClipboardMode>(initialClipboardMode);
   const exportRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
@@ -1297,6 +1299,8 @@ export function ScreenshotEditor() {
           setActiveSlideId(null);
           toast.success(m.editor.resetDeviceToast(deviceLabel(state.device)));
         }}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
         exporting={exporting}
         savedAt={savedAt}
         saveError={saveError}
@@ -1335,7 +1339,19 @@ export function ScreenshotEditor() {
         </aside>
 
         <main className="flex flex-1 items-stretch overflow-hidden min-h-0">
-          {activeSlide ? (
+          {viewMode === "row" ? (
+            <DeckRowPreviewStage
+              slides={currentSlides}
+              activeSlideId={activeSlide?.id || null}
+              device={state.device}
+              orientation={state.orientation}
+              theme={theme}
+              locale={state.locale}
+              appName={state.appName}
+              appIcon={state.appIcon}
+              onSelectSlide={setActiveSlideId}
+            />
+          ) : activeSlide ? (
             <PreviewStage
               slide={activeSlide}
               device={state.device}
