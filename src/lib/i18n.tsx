@@ -185,6 +185,8 @@ const en = {
   inspector: {
     title: "Slide settings",
     editing: "editing",
+    editorSettings: "Editor settings",
+    interfaceLanguage: "Interface language",
     layout: "Layout",
     frontDeviceScreenshot: "Front device screenshot",
     screenshot: "Screenshot",
@@ -517,6 +519,8 @@ const ru: Messages = {
   inspector: {
     title: "Настройки слайда",
     editing: "редактирование",
+    editorSettings: "Настройки редактора",
+    interfaceLanguage: "Язык интерфейса",
     layout: "Макет",
     frontDeviceScreenshot: "Скриншот переднего устройства",
     screenshot: "Скриншот",
@@ -843,6 +847,8 @@ const ja: Messages = {
   inspector: {
     title: "スライド設定",
     editing: "編集中",
+    editorSettings: "エディター設定",
+    interfaceLanguage: "インターフェース言語",
     layout: "レイアウト",
     frontDeviceScreenshot: "前面デバイスのスクリーンショット",
     screenshot: "スクリーンショット",

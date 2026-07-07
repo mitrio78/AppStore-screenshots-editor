@@ -21,6 +21,7 @@ import type {
 import { BackgroundPanel } from "./background-panel";
 import { DevicePanel } from "./device-panel";
 import { ElementPanel, type ClipboardMode, type ElementPatch, type LayerDir } from "./element-panel";
+import { LanguageSelect } from "./language-select";
 import { ScreenshotPicker } from "./screenshot-picker";
 
 type Props = {
@@ -87,6 +88,14 @@ export function Inspector({
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-3">
+        <div className="space-y-2.5 rounded-md border bg-muted/30 p-3">
+          <Label className="text-xs font-semibold">{m.inspector.editorSettings}</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">{m.inspector.interfaceLanguage}</Label>
+            <LanguageSelect triggerClassName="w-full" />
+          </div>
+        </div>
+
         <div className="space-y-1.5">
           <Label className="text-xs">{m.inspector.layout}</Label>
           <Select

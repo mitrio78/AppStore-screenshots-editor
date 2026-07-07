@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { AlertTriangle, Check, Cloud, Download, Languages, RotateCcw } from "lucide-react";
+import { AlertTriangle, Check, Cloud, Download, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,8 +20,9 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supportsLandscape } from "@/lib/constants";
 import { detectPlatform } from "@/lib/defaults";
-import { supportedAppLocales, useI18n, type AppLocale } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import type { Device, Orientation } from "@/lib/types";
+import { LanguageSelect } from "./language-select";
 import { ProjectSwitcher } from "./project-switcher";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -50,10 +51,6 @@ type Props = {
 
 export function Toolbar(props: Props) {
   const {
-    locale: appLocale,
-    setLocale: setAppLocale,
-    localeShortLabels,
-    localeLabels,
     deviceLabel: labelDevice,
     messages: m,
   } = useI18n();
@@ -172,28 +169,7 @@ export function Toolbar(props: Props) {
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <SaveStatus savedAt={props.savedAt} saveError={props.saveError} />
         <span aria-hidden className="h-5 w-px bg-border" />
-        <Select
-          value={appLocale}
-          onValueChange={(value) => setAppLocale(value as AppLocale)}
-          disabled={props.busy}
-        >
-          <SelectTrigger
-            className="h-8 w-28 text-xs"
-            title={m.language.title}
-            aria-label={m.language.aria}
-          >
-            <Languages className="h-3.5 w-3.5" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {supportedAppLocales().map((locale) => (
-              <SelectItem key={locale} value={locale}>
-                <span className="font-medium">{localeShortLabels[locale]}</span>
-                <span className="ml-2 text-muted-foreground">{localeLabels[locale]}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <LanguageSelect disabled={props.busy} triggerClassName="w-28" />
         <ThemeToggle />
         <Button
           variant="ghost"
