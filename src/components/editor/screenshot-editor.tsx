@@ -16,7 +16,13 @@ import { ensureFontsLoaded } from "@/lib/fonts";
 import { getCanvasSize } from "@/lib/layout-rects";
 import { didFail, preloadImages } from "@/lib/image-cache";
 import { useI18n } from "@/lib/i18n";
-import { pickText, resolveScreenshot, writeLocalized } from "@/lib/locale";
+import {
+  DEFAULT_LOCALE,
+  pickText,
+  removeLocalized,
+  resolveScreenshot,
+  writeLocalized,
+} from "@/lib/locale";
 import { useProject } from "@/lib/storage";
 import { uploadImageFile, imageSize } from "@/lib/upload";
 import type {
@@ -1291,6 +1297,37 @@ export function ScreenshotEditor() {
               ...p,
               locales: exists ? p.locales : [...p.locales, locale],
               locale,
+            };
+          })
+        }
+        onDeleteLocale={(locale) =>
+          setState((p) => {
+            const nextLocales = p.locales.filter(
+              (l) => l.toLowerCase() !== locale.toLowerCase(),
+            );
+            const locales = nextLocales.length ? nextLocales : [DEFAULT_LOCALE];
+            const nextLocale =
+              p.locale.toLowerCase() === locale.toLowerCase()
+                ? locales.includes(DEFAULT_LOCALE)
+                  ? DEFAULT_LOCALE
+                  : locales[0]
+                : p.locale;
+            const slidesByDevice: typeof p.slidesByDevice = { ...p.slidesByDevice };
+            (Object.keys(slidesByDevice) as Device[]).forEach((device) => {
+              slidesByDevice[device] = slidesByDevice[device].map((slide) => ({
+                ...slide,
+                elements: slide.elements.map((el) =>
+                  el.kind === "text"
+                    ? { ...el, text: removeLocalized(el.text, locale) }
+                    : el,
+                ),
+              }));
+            });
+            return {
+              ...p,
+              locales,
+              locale: nextLocale,
+              slidesByDevice,
             };
           })
         }

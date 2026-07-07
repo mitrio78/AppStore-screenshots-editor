@@ -71,3 +71,12 @@ export function writeLocalized(
   else next[locale] = value;
   return next;
 }
+
+export function removeLocalized(
+  field: LocalizedText | undefined,
+  locale: string,
+): LocalizedText {
+  const next: LocalizedText = { ...(field || {}) };
+  delete next[locale];
+  return next;
+}

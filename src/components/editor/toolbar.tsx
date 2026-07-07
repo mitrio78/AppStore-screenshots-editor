@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { AlertTriangle, Check, Cloud, Download, Plus, RotateCcw } from "lucide-react";
+import { AlertTriangle, Check, Cloud, Download, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,6 +41,7 @@ type Props = {
   setLocale: (v: string) => void;
   locales: string[];
   onAddLocale: (locale: string) => void;
+  onDeleteLocale: (locale: string) => void;
   device: Device;
   setDevice: (v: Device) => void;
   orientation: Orientation;
@@ -65,6 +66,7 @@ export function Toolbar(props: Props) {
   const hasLandscape = supportsLandscape(props.device);
   const [resetOpen, setResetOpen] = React.useState(false);
   const [addLocaleOpen, setAddLocaleOpen] = React.useState(false);
+  const [deleteLocaleOpen, setDeleteLocaleOpen] = React.useState(false);
   const [localeDraft, setLocaleDraft] = React.useState("");
   const [localeError, setLocaleError] = React.useState<string | null>(null);
 
@@ -78,6 +80,15 @@ export function Toolbar(props: Props) {
   }, [platform, props.device]);
 
   const deviceLabel = labelDevice(props.device);
+  const activeLocaleLabel = props.locale.toUpperCase();
+  const isBaseLocale = props.locale.toLowerCase() === "en";
+  const canDeleteLocale = props.locales.length > 1 && !isBaseLocale && !props.busy;
+  const deleteLocaleTitle =
+    props.locales.length <= 1
+      ? m.toolbar.deleteLocaleLastTitle
+      : isBaseLocale
+        ? m.toolbar.deleteLocaleBaseTitle
+        : m.toolbar.deleteLocaleTitle(activeLocaleLabel);
   const closeAddLocale = React.useCallback((open: boolean) => {
     setAddLocaleOpen(open);
     if (!open) {
@@ -101,152 +112,174 @@ export function Toolbar(props: Props) {
   }, [closeAddLocale, localeDraft, m.toolbar, props]);
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b bg-card/40 px-4 py-2">
-      <ProjectSwitcher
-        slug={props.projectSlug}
-        name={props.projectName}
-        disabled={props.busy}
-        onSwitch={props.onSwitchProject}
-        onRename={props.onRenameProject}
-      />
-      <Input
-        value={props.appName}
-        onChange={(e) => props.setAppName(e.target.value)}
-        className="h-8 w-40 border-dashed text-sm font-semibold focus-visible:border-input focus-visible:border-solid focus-visible:bg-background"
-        placeholder={m.toolbar.appNamePlaceholder}
-        aria-label={m.toolbar.appNameAria}
-        title={m.toolbar.appNameTitle}
-        disabled={props.busy}
-      />
+    <div className="border-b bg-card/40 px-3 py-2">
+      <div className="flex min-h-10 items-center gap-3 overflow-x-auto whitespace-nowrap">
+        <div className="flex shrink-0 items-center gap-2" aria-label={m.toolbar.projectControlsAria}>
+          <ProjectSwitcher
+            slug={props.projectSlug}
+            name={props.projectName}
+            disabled={props.busy}
+            onSwitch={props.onSwitchProject}
+            onRename={props.onRenameProject}
+          />
+          <Input
+            value={props.appName}
+            onChange={(e) => props.setAppName(e.target.value)}
+            className="h-8 w-44 border-dashed text-sm font-semibold focus-visible:border-input focus-visible:border-solid focus-visible:bg-background"
+            placeholder={m.toolbar.appNamePlaceholder}
+            aria-label={m.toolbar.appNameAria}
+            title={m.toolbar.appNameTitle}
+            disabled={props.busy}
+          />
+        </div>
 
-      <span aria-hidden className="mx-1 h-5 w-px bg-border" />
+        <ToolbarSeparator />
 
-      <Tabs
-        value={platform}
-        onValueChange={(p) => {
-          if (props.busy) return;
-          const next = p === "ios" ? lastByPlatform.current.ios : lastByPlatform.current.android;
-          props.setDevice(next);
-        }}
-      >
-        <TabsList className="h-8 p-0.5">
-          <TabsTrigger value="ios" className="h-7 px-3 text-xs" disabled={props.busy}>
-            iOS
-          </TabsTrigger>
-          <TabsTrigger value="android" className="h-7 px-3 text-xs" disabled={props.busy}>
-            Android
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+        <div className="flex shrink-0 items-center gap-2" aria-label={m.toolbar.targetControlsAria}>
+          <Tabs
+            value={platform}
+            onValueChange={(p) => {
+              if (props.busy) return;
+              const next = p === "ios" ? lastByPlatform.current.ios : lastByPlatform.current.android;
+              props.setDevice(next);
+            }}
+          >
+            <TabsList className="h-8 p-0.5">
+              <TabsTrigger value="ios" className="h-7 px-3 text-xs" disabled={props.busy}>
+                iOS
+              </TabsTrigger>
+              <TabsTrigger value="android" className="h-7 px-3 text-xs" disabled={props.busy}>
+                Android
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-      <Select
-        value={props.device}
-        onValueChange={(v) => props.setDevice(v as Device)}
-        disabled={props.busy}
-      >
-        <SelectTrigger className="h-8 w-44 text-xs">
-          <SelectValue placeholder={m.toolbar.devicePlaceholder}>{deviceLabel}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {platform === "ios" ? (
-            <>
-              <SelectItem value="iphone">{labelDevice("iphone")}</SelectItem>
-              <SelectItem value="ipad">{labelDevice("ipad")}</SelectItem>
-            </>
-          ) : (
-            <>
-              <SelectItem value="android">{labelDevice("android")}</SelectItem>
-              <SelectItem value="android-7">{labelDevice("android-7")}</SelectItem>
-              <SelectItem value="android-10">{labelDevice("android-10")}</SelectItem>
-              <SelectItem value="feature-graphic">{labelDevice("feature-graphic")}</SelectItem>
-            </>
+          <Select
+            value={props.device}
+            onValueChange={(v) => props.setDevice(v as Device)}
+            disabled={props.busy}
+          >
+            <SelectTrigger className="h-8 w-44 text-xs">
+              <SelectValue placeholder={m.toolbar.devicePlaceholder}>{deviceLabel}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {platform === "ios" ? (
+                <>
+                  <SelectItem value="iphone">{labelDevice("iphone")}</SelectItem>
+                  <SelectItem value="ipad">{labelDevice("ipad")}</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="android">{labelDevice("android")}</SelectItem>
+                  <SelectItem value="android-7">{labelDevice("android-7")}</SelectItem>
+                  <SelectItem value="android-10">{labelDevice("android-10")}</SelectItem>
+                  <SelectItem value="feature-graphic">{labelDevice("feature-graphic")}</SelectItem>
+                </>
+              )}
+            </SelectContent>
+          </Select>
+
+          {hasLandscape && (
+            <Select
+              value={props.orientation}
+              onValueChange={(v) => props.setOrientation(v as Orientation)}
+              disabled={props.busy}
+            >
+              <SelectTrigger className="h-8 w-32 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="portrait">{m.toolbar.portrait}</SelectItem>
+                <SelectItem value="landscape">{m.toolbar.landscape}</SelectItem>
+              </SelectContent>
+            </Select>
           )}
-        </SelectContent>
-      </Select>
+        </div>
 
-      {hasLandscape && (
-        <Select
-          value={props.orientation}
-          onValueChange={(v) => props.setOrientation(v as Orientation)}
-          disabled={props.busy}
-        >
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="portrait">{m.toolbar.portrait}</SelectItem>
-            <SelectItem value="landscape">{m.toolbar.landscape}</SelectItem>
-          </SelectContent>
-        </Select>
-      )}
+        <ToolbarSeparator />
 
-      <div className="flex items-center gap-1">
-        <Select value={props.locale} onValueChange={props.setLocale} disabled={props.busy}>
-          <SelectTrigger className="h-8 w-24 text-xs">
-            <SelectValue placeholder={m.toolbar.localePlaceholder} />
-          </SelectTrigger>
-          <SelectContent>
-            {props.locales.map((l) => (
-              <SelectItem key={l} value={l}>
-                {l.toUpperCase()}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => closeAddLocale(true)}
-          disabled={props.busy}
-          title={m.toolbar.addLocaleTitle}
-          aria-label={m.toolbar.addLocaleAria}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
+        <div className="flex shrink-0 items-center gap-1" aria-label={m.toolbar.localeControlsAria}>
+          <Select value={props.locale} onValueChange={props.setLocale} disabled={props.busy}>
+            <SelectTrigger className="h-8 w-24 text-xs">
+              <SelectValue placeholder={m.toolbar.localePlaceholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {props.locales.map((l) => (
+                <SelectItem key={l} value={l}>
+                  {l.toUpperCase()}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => closeAddLocale(true)}
+            disabled={props.busy}
+            title={m.toolbar.addLocaleTitle}
+            aria-label={m.toolbar.addLocaleAria}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setDeleteLocaleOpen(true)}
+            disabled={!canDeleteLocale}
+            title={deleteLocaleTitle}
+            aria-label={deleteLocaleTitle}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
 
-      <Tabs
-        value={props.viewMode}
-        onValueChange={(value) => props.setViewMode(value as EditorViewMode)}
-      >
-        <TabsList className="h-8 p-0.5" aria-label={m.toolbar.viewModeAria}>
-          <TabsTrigger value="edit" className="h-7 px-3 text-xs" disabled={props.busy}>
-            {m.toolbar.viewEdit}
-          </TabsTrigger>
-          <TabsTrigger value="row" className="h-7 px-3 text-xs" disabled={props.busy}>
-            {m.toolbar.viewStoreRow}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+        <ToolbarSeparator />
 
-      <div className="ml-auto flex shrink-0 items-center gap-2">
-        <SaveStatus savedAt={props.savedAt} saveError={props.saveError} />
-        <span aria-hidden className="h-5 w-px bg-border" />
-        <LanguageSelect disabled={props.busy} triggerClassName="w-28" />
-        <ThemeToggle />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setResetOpen(true)}
-          title={m.toolbar.resetTitle}
-          aria-label={m.toolbar.resetAria}
-          disabled={props.busy}
+        <Tabs
+          value={props.viewMode}
+          onValueChange={(value) => props.setViewMode(value as EditorViewMode)}
         >
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-        <Button
-          onClick={props.onExport}
-          disabled={!!props.exporting}
-          size="sm"
-          className="h-8"
-          title={m.toolbar.exportTitle}
-        >
-          <Download className="h-4 w-4" />
-          {props.exporting ? m.toolbar.exporting(props.exporting) : `${m.common.export}...`}
-        </Button>
+          <TabsList className="h-8 p-0.5" aria-label={m.toolbar.viewModeAria}>
+            <TabsTrigger value="edit" className="h-7 px-3 text-xs" disabled={props.busy}>
+              {m.toolbar.viewEdit}
+            </TabsTrigger>
+            <TabsTrigger value="row" className="h-7 px-3 text-xs" disabled={props.busy}>
+              {m.toolbar.viewStoreRow}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <div className="ml-auto flex shrink-0 items-center gap-2" aria-label={m.toolbar.actionsAria}>
+          <SaveStatus savedAt={props.savedAt} saveError={props.saveError} />
+          <ToolbarSeparator compact />
+          <LanguageSelect disabled={props.busy} triggerClassName="w-28" />
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setResetOpen(true)}
+            title={m.toolbar.resetTitle}
+            aria-label={m.toolbar.resetAria}
+            disabled={props.busy}
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={props.onExport}
+            disabled={!!props.exporting}
+            size="sm"
+            className="h-8 shrink-0"
+            title={m.toolbar.exportTitle}
+          >
+            <Download className="h-4 w-4" />
+            {props.exporting ? m.toolbar.exporting(props.exporting) : `${m.common.export}...`}
+          </Button>
+        </div>
       </div>
 
       <Dialog open={addLocaleOpen} onOpenChange={closeAddLocale}>
@@ -291,6 +324,37 @@ export function Toolbar(props: Props) {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={deleteLocaleOpen} onOpenChange={setDeleteLocaleOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{m.toolbar.deleteLocaleDialogTitle(activeLocaleLabel)}</DialogTitle>
+            <DialogDescription>
+              {m.toolbar.deleteLocaleDialogDescription(activeLocaleLabel)}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>{m.toolbar.deleteLocaleWarning(activeLocaleLabel)}</p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setDeleteLocaleOpen(false)}>
+              {m.common.cancel}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={!canDeleteLocale}
+              onClick={() => {
+                setDeleteLocaleOpen(false);
+                props.onDeleteLocale(props.locale);
+              }}
+            >
+              {m.toolbar.deleteLocaleSubmit}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -327,6 +391,15 @@ export function Toolbar(props: Props) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ToolbarSeparator({ compact = false }: { compact?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`${compact ? "h-6" : "h-8"} w-px shrink-0 bg-border`}
+    />
   );
 }
 
