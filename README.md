@@ -15,6 +15,14 @@ first run, starts the local dev server, and opens the editor in your browser.
 To stop the server, press `Ctrl+C` in the terminal window opened by
 `start.command`.
 
+### Windows Quick Start
+
+Double-click `start.cmd` in File Explorer. The launcher installs dependencies on
+first run, starts the local dev server, and opens the editor in your default
+browser.
+
+To stop the server, press `Ctrl+C` in the command window opened by `start.cmd`.
+
 ### Manual Start
 
 ```bash
