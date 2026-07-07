@@ -1,6 +1,10 @@
 <h1 align="center">Screenshot Studio</h1>
 
 <p align="center">
+  <strong>English</strong> · <a href="README.ru.md">Русский</a>
+</p>
+
+<p align="center">
   <strong>Design export-ready App Store and Google Play screenshot showcases in a local, visual editor.</strong>
 </p>
 
