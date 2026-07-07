@@ -1,0 +1,25 @@
+node_modules
+.next
+out
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+AGENTS.md
+CLAUDE.md
+
+# Screenshot Studio user/runtime data
+app-store-screenshots.json
+projects/*.json
+public/screenshots/*
+public/backgrounds/*
+public/fonts/uploaded/*
+public/fonts/fonts.json
+
+# Local export output, if saved inside the repo
+exports/
+exported/
+downloads/
+screenshot-studio-exports/
+*-ios-*.zip
+*-android-*.zip

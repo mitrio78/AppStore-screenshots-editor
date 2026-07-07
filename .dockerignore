@@ -1,0 +1,6 @@
+node_modules
+.next
+.git
+out
+*.zip
+.DS_Store

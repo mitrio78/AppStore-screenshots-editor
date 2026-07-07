@@ -1,0 +1,245 @@
+"use client";
+import * as React from "react";
+import { Check, ChevronsUpDown, Copy, FolderOpen, Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { ProjectSummary } from "@/lib/types";
+
+type Props = {
+  slug: string;
+  name: string;
+  disabled?: boolean;
+  onSwitch: (slug: string) => void;
+  onRename: (name: string) => void;
+};
+
+type DialogMode = "new" | "duplicate" | "rename" | "delete" | null;
+
+async function fetchProjects(): Promise<ProjectSummary[]> {
+  try {
+    const resp = await fetch("/api/projects", { cache: "no-store" });
+    const json = (await resp.json()) as { ok: boolean; projects?: ProjectSummary[] };
+    return json.ok && json.projects ? json.projects : [];
+  } catch {
+    return [];
+  }
+}
+
+export function ProjectSwitcher({ slug, name, disabled, onSwitch, onRename }: Props) {
+  const [projects, setProjects] = React.useState<ProjectSummary[]>([]);
+  const [mode, setMode] = React.useState<DialogMode>(null);
+  const [text, setText] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+
+  const refresh = React.useCallback(() => {
+    void fetchProjects().then(setProjects);
+  }, []);
+
+  React.useEffect(refresh, [refresh, slug]);
+
+  async function createProject(from?: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    try {
+      const resp = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: trimmed, from }),
+      });
+      const json = (await resp.json()) as { ok: boolean; slug?: string; error?: string };
+      if (!json.ok || !json.slug) throw new Error(json.error || `HTTP ${resp.status}`);
+      toast.success(from ? `Duplicated to "${trimmed}"` : `Project "${trimmed}" created`);
+      setMode(null);
+      onSwitch(json.slug);
+    } catch (e) {
+      toast.error("Couldn't create project", {
+        description: e instanceof Error ? e.message : String(e),
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeProject() {
+    setBusy(true);
+    try {
+      const resp = await fetch(`/api/projects/${slug}`, { method: "DELETE" });
+      const json = (await resp.json()) as { ok: boolean; error?: string };
+      if (!json.ok) throw new Error(json.error || `HTTP ${resp.status}`);
+      // Also drop the localStorage cache so the slug can be reused cleanly.
+      try {
+        window.localStorage.removeItem(`screenshot-studio:project:${slug}:v2`);
+      } catch {
+        /* ignore */
+      }
+      const rest = projects.filter((p) => p.slug !== slug);
+      toast.success(`Project "${name}" deleted`);
+      setMode(null);
+      onSwitch(rest[0]?.slug || "default");
+    } catch (e) {
+      toast.error("Couldn't delete project", {
+        description: e instanceof Error ? e.message : String(e),
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openDialog(next: Exclude<DialogMode, null>) {
+    setText(next === "rename" ? name : next === "duplicate" ? `${name} copy` : "");
+    setMode(next);
+  }
+
+  return (
+    <>
+      <DropdownMenu onOpenChange={(open) => open && refresh()}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 max-w-52 justify-start gap-1.5 text-xs font-semibold"
+            disabled={disabled}
+            title="Switch project / preset"
+          >
+            <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate">{name}</span>
+            <ChevronsUpDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-64">
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Projects
+          </DropdownMenuLabel>
+          {projects.map((p) => (
+            <DropdownMenuItem
+              key={p.slug}
+              onSelect={() => p.slug !== slug && onSwitch(p.slug)}
+              className="gap-2 text-xs"
+            >
+              <Check className={`h-3.5 w-3.5 ${p.slug === slug ? "opacity-100" : "opacity-0"}`} />
+              <span className="truncate">{p.name}</span>
+              <span className="ml-auto font-mono text-[10px] text-muted-foreground">{p.slug}</span>
+            </DropdownMenuItem>
+          ))}
+          {projects.length === 0 && (
+            <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+              No saved projects yet
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => openDialog("new")} className="gap-2 text-xs">
+            <Plus className="h-3.5 w-3.5" /> New project…
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => openDialog("duplicate")} className="gap-2 text-xs">
+            <Copy className="h-3.5 w-3.5" /> Duplicate as preset…
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => openDialog("rename")} className="gap-2 text-xs">
+            <Pencil className="h-3.5 w-3.5" /> Rename…
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => openDialog("delete")}
+            className="gap-2 text-xs text-destructive focus:text-destructive"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Delete project…
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={mode !== null} onOpenChange={(open) => !open && !busy && setMode(null)}>
+        <DialogContent className="max-w-sm">
+          {mode === "delete" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Delete “{name}”?</DialogTitle>
+                <DialogDescription>
+                  Removes projects/{slug}.json from disk. Uploaded screenshots stay in
+                  public/screenshots/. This can only be undone through git.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" disabled={busy} onClick={() => setMode(null)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" size="sm" disabled={busy} onClick={() => void removeProject()}>
+                  {busy ? "Deleting…" : "Delete"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>
+                  {mode === "new" && "New project"}
+                  {mode === "duplicate" && "Duplicate as preset"}
+                  {mode === "rename" && "Rename project"}
+                </DialogTitle>
+                <DialogDescription>
+                  {mode === "duplicate"
+                    ? `Copies every deck and setting of "${name}" into a new project file.`
+                    : mode === "new"
+                      ? "Starts from the default starter deck."
+                      : "Display name shown in the switcher (the file slug doesn't change)."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Project name</Label>
+                <Input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    if (mode === "rename") {
+                      onRename(text.trim());
+                      setMode(null);
+                    } else {
+                      void createProject(mode === "duplicate" ? slug : undefined);
+                    }
+                  }}
+                  placeholder="FitLinkPro"
+                  autoFocus
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" disabled={busy} onClick={() => setMode(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={busy || !text.trim()}
+                  onClick={() => {
+                    if (mode === "rename") {
+                      onRename(text.trim());
+                      setMode(null);
+                    } else {
+                      void createProject(mode === "duplicate" ? slug : undefined);
+                    }
+                  }}
+                >
+                  {busy ? "Working…" : mode === "rename" ? "Rename" : "Create"}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
