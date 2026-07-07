@@ -5,8 +5,6 @@ out
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
-AGENTS.md
-CLAUDE.md
 
 # Screenshot Studio user/runtime data
 app-store-screenshots.json
