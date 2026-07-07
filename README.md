@@ -1,9 +1,32 @@
-# Screenshot Studio
+<h1 align="center">Screenshot Studio</h1>
 
-A local web editor for creating App Store and Google Play screenshot showcases.
-It is built with Next.js 15, React, and Tailwind CSS, and includes a canvas
-editor, device mockups, custom text/image layers, local project storage, and
-PNG/JPG export.
+<p align="center">
+  <strong>Design export-ready App Store and Google Play screenshot showcases in a local, visual editor.</strong>
+</p>
+
+<p align="center">
+  Build polished store visuals with real device mockups, reusable slide
+  templates, localized copy, custom typography, drag-and-drop screenshots, and
+  PNG/JPG export without sending private app assets to a cloud generator.
+</p>
+
+<p align="center">
+  <a href="#getting-started">Getting Started</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#local-user-data">Local User Data</a> ·
+  <a href="#codex-skill">Codex Skill</a>
+</p>
+
+<p align="center">
+  <img src="docs/assets/screenshot-studio-demo.png" alt="Screenshot Studio editor with slide thumbnails, canvas, device mockup, and slide settings" width="100%">
+</p>
+
+## Why Screenshot Studio?
+
+Screenshot Studio is a local web editor for teams and solo developers who need
+store screenshots that are repeatable, editable, and exportable. It is built
+with Next.js 15, React, and Tailwind CSS, and keeps showcase projects as plain
+JSON plus local screenshots, backgrounds, and fonts.
 
 ## Getting Started
 
