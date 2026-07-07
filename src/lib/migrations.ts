@@ -166,6 +166,7 @@ function migrateSlide(
   if (raw.inverted) slide.inverted = raw.inverted;
   if (raw.background) slide.background = raw.background;
   if (raw.deviceShadow) slide.deviceShadow = raw.deviceShadow;
+  if (raw.frameColor) slide.frameColor = raw.frameColor;
   if (Object.keys(deviceTransforms).length) slide.transforms = deviceTransforms;
   return slide;
 }
