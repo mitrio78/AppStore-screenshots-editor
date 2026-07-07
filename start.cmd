@@ -41,12 +41,10 @@ if not exist "node_modules\" (
   )
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -UseBasicParsing -Uri '%URL%' -TimeoutSec 2 | Out-Null; exit 0 } catch { exit 1 }" >nul 2>nul
-if not errorlevel 1 (
-  echo Server is already running. Opening %URL%
-  start "" "%URL%"
-  exit /b 0
-)
+rem Stop any Screenshot Studio server already running FROM THIS FOLDER, so
+rem servers never pile up on new ports. Scoped by command line to this repo path.
+echo Clearing any previous server from this folder...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like ('*' + $env:CD + '*') } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>nul
 
 start "" powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command "Start-Sleep -Seconds 4; Start-Process '%URL%'"
 

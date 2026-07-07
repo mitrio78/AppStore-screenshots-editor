@@ -17,9 +17,30 @@ cd "$(dirname "$0")"
 MODE="${1:-prod}"
 PORT=3000
 URL="http://localhost:$PORT"
+REPO="$(pwd)"
 
 echo "Screenshot Studio ($MODE)"
 echo "-------------------------"
+
+# Stop any Screenshot Studio server already running FROM THIS FOLDER. Scoped by
+# working directory, so other projects are never touched. This is what prevents
+# servers from piling up on new ports (3001, 3002, ...) that you can't close:
+# every launch first clears the old one, then starts exactly one on port 3000.
+stop_repo_servers() {
+  local candidates pids p cwd
+  candidates=$( { pgrep -f "next-server" ; pgrep -f "$REPO/node_modules/.bin/next" ; pgrep -f "npm run dev" ; pgrep -f "npm start" ; } 2>/dev/null | sort -u )
+  pids=""
+  for p in $candidates; do
+    cwd=$(lsof -a -d cwd -p "$p" -Fn 2>/dev/null | sed -n 's/^n//p' | head -1)
+    [ "$cwd" = "$REPO" ] && pids="$pids $p"
+  done
+  if [ -n "$pids" ]; then
+    echo "Останавливаю прежние серверы этой папки:$pids"
+    kill $pids 2>/dev/null || true
+    sleep 2
+    kill -9 $pids 2>/dev/null || true
+  fi
+}
 
 # 1. Check Node.js is available.
 if ! command -v node >/dev/null 2>&1; then
@@ -36,12 +57,8 @@ if [ ! -d node_modules ]; then
   npm install
 fi
 
-# 3. If the server is already up on this port, just open the browser and exit.
-if curl -s -o /dev/null "http://localhost:$PORT" 2>/dev/null; then
-  echo "Сервер уже запущен — открываю $URL"
-  open "$URL"
-  exit 0
-fi
+# 3. Clear any previous instance from this folder so servers never stack up.
+stop_repo_servers
 
 # 4. Open the browser a few seconds after the server starts booting.
 ( sleep 4; open "$URL" ) &
