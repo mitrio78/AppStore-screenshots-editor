@@ -115,6 +115,18 @@ const en = {
     appNameAria: "App name",
     appNameTitle: "App name (click to edit)",
     devicePlaceholder: "Device",
+    localePlaceholder: "Locale",
+    addLocaleTitle: "Add localization",
+    addLocaleAria: "Add localization",
+    addLocaleDialogTitle: "Add localization",
+    addLocaleDialogDescription:
+      "Add a locale code for this project. Text falls back to English until you enter localized copy.",
+    localeCodeLabel: "Locale code",
+    localeCodePlaceholder: "ja, de, es-MX, zh-Hans",
+    localeCodeHint: "Use a BCP-47-style code. It is also used in {locale} screenshot paths.",
+    addLocaleInvalid: "Enter a valid locale code, for example ja, de, es-MX, or zh-Hans.",
+    addLocaleDuplicate: (locale: string) => `${locale} is already in this project.`,
+    addLocaleSubmit: "Add locale",
     portrait: "Portrait",
     landscape: "Landscape",
     exportTitle: "Export PNG/JPG at App Store sizes",
@@ -456,6 +468,18 @@ const ru: Messages = {
     appNameAria: "Название приложения",
     appNameTitle: "Название приложения (кликните, чтобы изменить)",
     devicePlaceholder: "Устройство",
+    localePlaceholder: "Локаль",
+    addLocaleTitle: "Добавить локализацию",
+    addLocaleAria: "Добавить локализацию",
+    addLocaleDialogTitle: "Добавить локализацию",
+    addLocaleDialogDescription:
+      "Добавьте код локали для этого проекта. Пока перевод не введен, текст будет показываться из English.",
+    localeCodeLabel: "Код локали",
+    localeCodePlaceholder: "ja, de, es-MX, zh-Hans",
+    localeCodeHint: "Используйте код в стиле BCP-47. Он также применяется в путях скриншотов {locale}.",
+    addLocaleInvalid: "Введите корректный код локали, например ja, de, es-MX или zh-Hans.",
+    addLocaleDuplicate: (locale) => `${locale} уже есть в этом проекте.`,
+    addLocaleSubmit: "Добавить локаль",
     portrait: "Портрет",
     landscape: "Ландшафт",
     exportTitle: "Экспорт PNG/JPG в размерах App Store",
@@ -791,6 +815,18 @@ const ja: Messages = {
     appNameAria: "アプリ名",
     appNameTitle: "アプリ名 (クリックして編集)",
     devicePlaceholder: "デバイス",
+    localePlaceholder: "ロケール",
+    addLocaleTitle: "ローカライズを追加",
+    addLocaleAria: "ローカライズを追加",
+    addLocaleDialogTitle: "ローカライズを追加",
+    addLocaleDialogDescription:
+      "このプロジェクトにロケールコードを追加します。翻訳を入力するまでは英語テキストにフォールバックします。",
+    localeCodeLabel: "ロケールコード",
+    localeCodePlaceholder: "ja, de, es-MX, zh-Hans",
+    localeCodeHint: "BCP-47 形式のコードを使用してください。{locale} を含むスクリーンショットパスにも使われます。",
+    addLocaleInvalid: "ja、de、es-MX、zh-Hans のような有効なロケールコードを入力してください。",
+    addLocaleDuplicate: (locale) => `${locale} はすでにこのプロジェクトにあります。`,
+    addLocaleSubmit: "ロケールを追加",
     portrait: "縦向き",
     landscape: "横向き",
     exportTitle: "App Store サイズで PNG/JPG を書き出し",
@@ -1075,16 +1111,23 @@ type I18nContextValue = {
 const I18nContext = React.createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = React.useState<AppLocale>(initialAppLocale);
+  const [locale, setLocaleState] = React.useState<AppLocale>("en");
+  const [hydrated, setHydrated] = React.useState(false);
 
   React.useEffect(() => {
+    setLocaleState(initialAppLocale());
+    setHydrated(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!hydrated) return;
     document.documentElement.lang = locale;
     try {
       window.localStorage.setItem(APP_LANGUAGE_KEY, locale);
     } catch {
       /* ignore */
     }
-  }, [locale]);
+  }, [hydrated, locale]);
 
   const value = React.useMemo<I18nContextValue>(() => {
     const messages = MESSAGES[locale];

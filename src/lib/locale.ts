@@ -2,6 +2,29 @@ import type { LocalizedText } from "./types";
 
 export const DEFAULT_LOCALE = "en";
 
+export function normalizeLocaleCode(value: string): string {
+  const parts = value
+    .trim()
+    .replace(/_/g, "-")
+    .replace(/\s+/g, "-")
+    .split("-")
+    .filter(Boolean);
+
+  return parts
+    .map((part, index) => {
+      const lower = part.toLowerCase();
+      if (index === 0) return lower;
+      if (/^[a-z]{4}$/i.test(part)) return lower.charAt(0).toUpperCase() + lower.slice(1);
+      if (/^([a-z]{2}|\d{3})$/i.test(part)) return part.toUpperCase();
+      return lower;
+    })
+    .join("-");
+}
+
+export function isValidLocaleCode(value: string): boolean {
+  return /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8}){0,4}$/.test(value);
+}
+
 // Read the value for `locale` from a localized field. Falls back to en, then to
 // the first locale that has a non-empty value, then to empty string. Used by
 // the canvas/preview/thumb so switching to a locale the user hasn't filled in

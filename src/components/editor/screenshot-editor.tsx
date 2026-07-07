@@ -1284,6 +1284,16 @@ export function ScreenshotEditor() {
         locale={state.locale}
         setLocale={(v) => setState((p) => ({ ...p, locale: v }))}
         locales={state.locales}
+        onAddLocale={(locale) =>
+          setState((p) => {
+            const exists = p.locales.some((l) => l.toLowerCase() === locale.toLowerCase());
+            return {
+              ...p,
+              locales: exists ? p.locales : [...p.locales, locale],
+              locale,
+            };
+          })
+        }
         device={state.device}
         setDevice={(v) => setState((p) => ({ ...p, device: v }))}
         orientation={state.orientation}

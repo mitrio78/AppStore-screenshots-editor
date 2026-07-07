@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { AlertTriangle, Check, Cloud, Download, RotateCcw } from "lucide-react";
+import { AlertTriangle, Check, Cloud, Download, Plus, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supportsLandscape } from "@/lib/constants";
 import { detectPlatform } from "@/lib/defaults";
 import { useI18n } from "@/lib/i18n";
+import { isValidLocaleCode, normalizeLocaleCode } from "@/lib/locale";
 import type { Device, Orientation } from "@/lib/types";
 import { LanguageSelect } from "./language-select";
 import { ProjectSwitcher } from "./project-switcher";
@@ -38,6 +40,7 @@ type Props = {
   locale: string;
   setLocale: (v: string) => void;
   locales: string[];
+  onAddLocale: (locale: string) => void;
   device: Device;
   setDevice: (v: Device) => void;
   orientation: Orientation;
@@ -61,6 +64,9 @@ export function Toolbar(props: Props) {
   const platform = detectPlatform(props.device);
   const hasLandscape = supportsLandscape(props.device);
   const [resetOpen, setResetOpen] = React.useState(false);
+  const [addLocaleOpen, setAddLocaleOpen] = React.useState(false);
+  const [localeDraft, setLocaleDraft] = React.useState("");
+  const [localeError, setLocaleError] = React.useState<string | null>(null);
 
   // Track last device per platform so iOS/Android tabs preserve user's choice.
   const lastByPlatform = React.useRef<{ ios: Device; android: Device }>({
@@ -71,9 +77,28 @@ export function Toolbar(props: Props) {
     lastByPlatform.current[platform] = props.device;
   }, [platform, props.device]);
 
-  const showLocale = props.locales.length > 1;
-
   const deviceLabel = labelDevice(props.device);
+  const closeAddLocale = React.useCallback((open: boolean) => {
+    setAddLocaleOpen(open);
+    if (!open) {
+      setLocaleDraft("");
+      setLocaleError(null);
+    }
+  }, []);
+
+  const submitLocale = React.useCallback(() => {
+    const normalized = normalizeLocaleCode(localeDraft);
+    if (!isValidLocaleCode(normalized)) {
+      setLocaleError(m.toolbar.addLocaleInvalid);
+      return;
+    }
+    if (props.locales.some((l) => l.toLowerCase() === normalized.toLowerCase())) {
+      setLocaleError(m.toolbar.addLocaleDuplicate(normalized));
+      return;
+    }
+    props.onAddLocale(normalized);
+    closeAddLocale(false);
+  }, [closeAddLocale, localeDraft, m.toolbar, props]);
 
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b bg-card/40 px-4 py-2">
@@ -155,10 +180,10 @@ export function Toolbar(props: Props) {
         </Select>
       )}
 
-      {showLocale && (
+      <div className="flex items-center gap-1">
         <Select value={props.locale} onValueChange={props.setLocale} disabled={props.busy}>
-          <SelectTrigger className="h-8 w-20 text-xs">
-            <SelectValue />
+          <SelectTrigger className="h-8 w-24 text-xs">
+            <SelectValue placeholder={m.toolbar.localePlaceholder} />
           </SelectTrigger>
           <SelectContent>
             {props.locales.map((l) => (
@@ -168,7 +193,19 @@ export function Toolbar(props: Props) {
             ))}
           </SelectContent>
         </Select>
-      )}
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => closeAddLocale(true)}
+          disabled={props.busy}
+          title={m.toolbar.addLocaleTitle}
+          aria-label={m.toolbar.addLocaleAria}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
 
       <Tabs
         value={props.viewMode}
@@ -211,6 +248,48 @@ export function Toolbar(props: Props) {
           {props.exporting ? m.toolbar.exporting(props.exporting) : `${m.common.export}...`}
         </Button>
       </div>
+
+      <Dialog open={addLocaleOpen} onOpenChange={closeAddLocale}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{m.toolbar.addLocaleDialogTitle}</DialogTitle>
+            <DialogDescription>{m.toolbar.addLocaleDialogDescription}</DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitLocale();
+            }}
+          >
+            <div className="space-y-1.5">
+              <Label className="text-xs" htmlFor="new-locale-code">
+                {m.toolbar.localeCodeLabel}
+              </Label>
+              <Input
+                id="new-locale-code"
+                value={localeDraft}
+                onChange={(e) => {
+                  setLocaleDraft(e.target.value);
+                  setLocaleError(null);
+                }}
+                placeholder={m.toolbar.localeCodePlaceholder}
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">{m.toolbar.localeCodeHint}</p>
+              {localeError && <p className="text-xs text-destructive">{localeError}</p>}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" size="sm" onClick={() => closeAddLocale(false)}>
+                {m.common.cancel}
+              </Button>
+              <Button type="submit" size="sm">
+                {m.toolbar.addLocaleSubmit}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent className="max-w-md">

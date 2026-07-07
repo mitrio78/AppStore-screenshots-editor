@@ -162,7 +162,7 @@ export type ProjectState = {
   appName: string;
   themeId: ThemeId;
   // Locales this project targets. Drives the toolbar dropdown and bulk export.
-  // Single-locale projects ship as ["en"] and hide the locale UI.
+  // New projects start as ["en"]; users can add any BCP-47-style locale code.
   locales: string[];
   locale: string;
   device: Device;
