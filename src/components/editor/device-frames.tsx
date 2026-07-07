@@ -3,6 +3,7 @@ import * as React from "react";
 import { hexToRgba } from "@/lib/background";
 import { PHONE_SCREEN, getFrameColor } from "@/lib/constants";
 import { img } from "@/lib/image-cache";
+import { useI18n } from "@/lib/i18n";
 import type { ShadowSpec } from "@/lib/types";
 
 export type FrameProps = {
@@ -68,6 +69,7 @@ function useFileDrop(onDropFile?: (file: File) => void) {
 }
 
 function DropOverlay({ active }: { active: boolean }) {
+  const { messages: m } = useI18n();
   if (!active) return null;
   return (
     <div
@@ -87,7 +89,7 @@ function DropOverlay({ active }: { active: boolean }) {
         pointerEvents: "none",
       }}
     >
-      Drop screenshot
+      {m.canvas.dropScreenshot}
     </div>
   );
 }
@@ -321,6 +323,7 @@ export function IPad(props: FrameProps) {
 }
 
 function EmptySlot() {
+  const { messages: m } = useI18n();
   return (
     <div
       style={{
@@ -336,7 +339,7 @@ function EmptySlot() {
         padding: "4%",
       }}
     >
-      Drop a screenshot here
+      {m.canvas.dropScreenshotHere}
     </div>
   );
 }

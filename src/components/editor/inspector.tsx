@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LAYOUT_HINT, LAYOUT_LABEL } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import type {
   Device,
   ElementTransform,
@@ -70,6 +70,7 @@ export function Inspector({
   onDeleteElement,
   onDuplicateElement,
 }: Props) {
+  const { layoutLabel, layoutHint, messages: m } = useI18n();
   const isFeatureGraphic = slide.layout === "feature-graphic";
   const isNoDevice = slide.layout === "no-device";
 
@@ -77,17 +78,17 @@ export function Inspector({
     <div className="flex h-full flex-col">
       <div className="border-b p-3">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold">Slide settings</h2>
+          <h2 className="text-sm font-semibold">{m.inspector.title}</h2>
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            editing · {locale.toUpperCase()}
+            {m.inspector.editing} · {locale.toUpperCase()}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">{LAYOUT_HINT[slide.layout]}</p>
+        <p className="text-xs text-muted-foreground">{layoutHint(slide.layout)}</p>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-3">
         <div className="space-y-1.5">
-          <Label className="text-xs">Layout</Label>
+          <Label className="text-xs">{m.inspector.layout}</Label>
           <Select
             value={slide.layout}
             onValueChange={(layout) => {
@@ -106,9 +107,9 @@ export function Inspector({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(LAYOUT_LABEL).map(([layout, label]) => (
+              {Object.keys(m.layouts.labels).map((layout) => (
                 <SelectItem key={layout} value={layout}>
-                  {label}
+                  {layoutLabel(layout as SlideLayout)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -118,10 +119,10 @@ export function Inspector({
         {!isFeatureGraphic && !isNoDevice && (
           <div className="space-y-1.5">
             <Label className="text-xs">
-              {slide.layout === "two-devices" ? "Front device screenshot" : "Screenshot"}
+              {slide.layout === "two-devices" ? m.inspector.frontDeviceScreenshot : m.inspector.screenshot}
             </Label>
             <ScreenshotPicker
-              label="Primary"
+              label={m.inspector.primary}
               value={slide.screenshot}
               onChange={(v) => onChange({ screenshot: v })}
             />
@@ -130,9 +131,9 @@ export function Inspector({
 
         {slide.layout === "two-devices" && (
           <div className="space-y-1.5">
-            <Label className="text-xs">Back device screenshot</Label>
+            <Label className="text-xs">{m.inspector.backDeviceScreenshot}</Label>
             <ScreenshotPicker
-              label="Secondary (back layer)"
+              label={m.inspector.secondaryBackLayer}
               value={slide.screenshotSecondary || ""}
               onChange={(v) => onChange({ screenshotSecondary: v })}
             />
@@ -183,7 +184,9 @@ export function Inspector({
 
         {isFeatureGraphic && (
           <p className="rounded-md border bg-muted/40 p-3 text-[11px] leading-relaxed text-muted-foreground">
-            Shows app icon + name + tagline (click the tagline on the canvas to edit it). Drop an icon at <span className="rounded bg-background px-1 py-0.5 font-mono text-[10px] text-foreground">/public/app-icon.png</span> (or leave blank — the app initial will be used). Name is set in the toolbar.
+            {m.inspector.featureGraphicBeforePath}{" "}
+            <span className="rounded bg-background px-1 py-0.5 font-mono text-[10px] text-foreground">/public/app-icon.png</span>{" "}
+            {m.inspector.featureGraphicAfterPath}
           </p>
         )}
       </div>

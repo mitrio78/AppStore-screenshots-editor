@@ -15,6 +15,7 @@ import { detectPlatform, eid, newSlide } from "@/lib/defaults";
 import { ensureFontsLoaded } from "@/lib/fonts";
 import { getCanvasSize } from "@/lib/layout-rects";
 import { didFail, preloadImages } from "@/lib/image-cache";
+import { useI18n } from "@/lib/i18n";
 import { pickText, resolveScreenshot, writeLocalized } from "@/lib/locale";
 import { useProject } from "@/lib/storage";
 import { uploadImageFile, imageSize } from "@/lib/upload";
@@ -232,6 +233,7 @@ function initialSlug(): string {
 }
 
 export function ScreenshotEditor() {
+  const { deviceLabel, messages: m } = useI18n();
   const [slug, setSlugState] = React.useState<string>(initialSlug);
   const { state, setState, hydrated, savedAt, saveError, reset, resetDevice, undo, redo } =
     useProject(slug);
@@ -287,7 +289,7 @@ export function ScreenshotEditor() {
         } catch {
           /* ignore */
         }
-        toast.warning(`Project "${slug}" is missing; switched to Default`);
+        toast.warning(m.editor.projectMissing(slug));
         setSlug(DEFAULT_PROJECT_SLUG);
       } catch {
         /* If the project list cannot load, keep the current slug and surface save errors normally. */
@@ -297,7 +299,7 @@ export function ScreenshotEditor() {
     return () => {
       cancelled = true;
     };
-  }, [hydrated, setSlug, slug]);
+  }, [hydrated, m, setSlug, slug]);
 
   const setClipboardMode = React.useCallback((mode: ClipboardMode) => {
     clipboardModeRef.current = mode;
@@ -369,7 +371,7 @@ export function ScreenshotEditor() {
   // Surface storage failures (quota exceeded etc.) so the user knows their work isn't safe.
   React.useEffect(() => {
     if (saveError) {
-      toast.error("Couldn't save changes locally", {
+      toast.error(m.editor.saveLocalError, {
         description: saveError,
         duration: 8000,
       });
@@ -383,7 +385,7 @@ export function ScreenshotEditor() {
         setSlug(DEFAULT_PROJECT_SLUG);
       }
     }
-  }, [saveError, setSlug, slug]);
+  }, [m, saveError, setSlug, slug]);
 
   // ---------- Slide mutations ----------
 
@@ -431,9 +433,9 @@ export function ScreenshotEditor() {
       setActiveSlideId((cur) => (cur === id ? fallback?.id || null : cur));
       delete exportRefs.current[id];
 
-      toast("Slide deleted", {
+      toast(m.editor.slideDeleted, {
         action: {
-          label: "Undo",
+          label: m.editor.undo,
           onClick: () => {
             setState((prev) => {
               const cur = prev.slidesByDevice[dev] || [];
@@ -450,7 +452,7 @@ export function ScreenshotEditor() {
         duration: 6000,
       });
     },
-    [setState, state.device, state.slidesByDevice],
+    [m, setState, state.device, state.slidesByDevice],
   );
 
   const addSlide = React.useCallback(
@@ -583,7 +585,7 @@ export function ScreenshotEditor() {
     const el: TextElement = {
       id: eid(),
       kind: "text",
-      text: { [state.locale]: "New text" },
+      text: { [state.locale]: m.editor.newText },
       fontFamily: "Inter",
       fontSize: Math.round(unit * 0.045),
       fontWeight: 600,
@@ -600,7 +602,7 @@ export function ScreenshotEditor() {
     };
     patchSlide(activeSlide.id, { elements: [...activeSlide.elements, el] });
     setSelectedElementId(el.id);
-  }, [activeSlide, patchSlide, state.device, state.orientation, state.locale, theme]);
+  }, [activeSlide, m, patchSlide, state.device, state.orientation, state.locale, theme]);
 
   const addImageElement = React.useCallback(
     async (file: File) => {
@@ -732,9 +734,9 @@ export function ScreenshotEditor() {
         return;
       }
       patchSlide(slide.id, slot === "device" ? { screenshot: result.path } : { screenshotSecondary: result.path });
-      toast.success("Screenshot placed");
+      toast.success(m.editor.screenshotPlaced);
     },
-    [patchSlide],
+    [m, patchSlide],
   );
 
   const applyBackgroundToDeck = React.useCallback(() => {
@@ -752,8 +754,8 @@ export function ScreenshotEditor() {
         }),
       },
     }));
-    toast.success("Background applied to all slides");
-  }, [activeSlide, setState]);
+    toast.success(m.editor.backgroundApplied);
+  }, [activeSlide, m, setState]);
 
   // Spread the active slide's image OR gradient background as a panorama across
   // `count` consecutive slides starting at the active one, with offsetX evenly
@@ -766,7 +768,7 @@ export function ScreenshotEditor() {
       const isImage = bg?.type === "image" && !!bg.src;
       const isGradient = bg?.type === "gradient";
       if (!bg || (!isImage && !isGradient)) {
-        toast.error("Set an image or gradient background first");
+        toast.error(m.editor.setImageOrGradientFirst);
         return;
       }
       let applied = 0;
@@ -790,9 +792,9 @@ export function ScreenshotEditor() {
           slidesByDevice: { ...prev.slidesByDevice, [prev.device]: next },
         };
       });
-      if (applied) toast.success(`Panorama spread across ${applied} slides`);
+      if (applied) toast.success(m.editor.panoramaSpread(applied));
     },
-    [activeSlide, setState],
+    [activeSlide, m, setState],
   );
 
   const applySlideTemplateToDeck = React.useCallback(() => {
@@ -840,11 +842,11 @@ export function ScreenshotEditor() {
     });
 
     if (appliedCount === 0) {
-      toast.message("Нет других слайдов для применения шаблона");
+      toast.message(m.editor.noOtherSlidesForTemplate);
     } else {
-      toast.success(`Шаблон применён к ${appliedCount} слайд${appliedCount === 1 ? "у" : "ам"}`);
+      toast.success(m.editor.templateApplied(appliedCount));
     }
-  }, [activeSlide, currentSlides, setState]);
+  }, [activeSlide, currentSlides, m, setState]);
 
   // ---------- Keyboard shortcuts ----------
 
@@ -1017,7 +1019,7 @@ export function ScreenshotEditor() {
   async function exportBundle(opts: ExportOptions) {
     const slides = opts.scope === "current" && activeSlide ? [activeSlide] : currentSlides;
     if (!slides.length || !opts.sizes.length || !opts.locales.length) {
-      toast.error("Nothing to export");
+      toast.error(m.editor.nothingToExport);
       return;
     }
 
@@ -1077,7 +1079,7 @@ export function ScreenshotEditor() {
     // otherwise a missing file exports as a silent black screen.
     const missing = Array.from(needed).filter((p) => didFail(p));
     if (missing.length) {
-      toast.warning(`${missing.length} image(s) couldn't load — those areas export blank`, {
+      toast.warning(m.editor.imagesCouldNotLoad(missing.length), {
         description: missing.slice(0, 4).join("\n"),
         duration: 9000,
       });
@@ -1165,21 +1167,21 @@ export function ScreenshotEditor() {
           setTimeout(() => URL.revokeObjectURL(url), 5000);
         }
       } catch (e) {
-        toast.error("Couldn't bundle export");
+        toast.error(m.editor.bundleError);
         console.error(e);
         return;
       }
     }
 
-    const summary = `${opts.locales.length} locale${opts.locales.length === 1 ? "" : "s"} × ${opts.sizes.length} size${opts.sizes.length === 1 ? "" : "s"}`;
+    const summary = m.editor.exportSummary(opts.locales.length, opts.sizes.length);
     if (failed === 0) {
-      toast.success(`Exported ${okCount} ${ext.toUpperCase()}s (${summary})`);
+      toast.success(m.editor.exported(okCount, ext.toUpperCase(), summary));
     } else if (okCount === 0) {
-      toast.error(`All ${failed} renders failed`, {
+      toast.error(m.editor.allRendersFailed(failed), {
         description: errors.slice(0, 3).join("\n"),
       });
     } else {
-      toast.error(`${failed} of ${totalUnits} renders failed`, {
+      toast.error(m.editor.rendersFailed(failed, totalUnits), {
         description: errors.slice(0, 3).join("\n"),
       });
     }
@@ -1258,7 +1260,7 @@ export function ScreenshotEditor() {
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-2 text-muted-foreground">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          <p className="text-sm">Loading editor…</p>
+          <p className="text-sm">{m.editor.loading}</p>
         </div>
       </div>
     );
@@ -1288,12 +1290,12 @@ export function ScreenshotEditor() {
         onResetAll={() => {
           reset();
           setActiveSlideId(null);
-          toast.success("Reset all devices to defaults");
+          toast.success(m.editor.resetAllToast);
         }}
         onResetDevice={() => {
           resetDevice(state.device);
           setActiveSlideId(null);
-          toast.success(`Reset ${state.device} to defaults`);
+          toast.success(m.editor.resetDeviceToast(deviceLabel(state.device)));
         }}
         exporting={exporting}
         savedAt={savedAt}
@@ -1350,8 +1352,8 @@ export function ScreenshotEditor() {
             />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">No slide selected</p>
-              <p>Add a slide on the left to get started.</p>
+              <p className="font-medium text-foreground">{m.editor.noSlideSelectedTitle}</p>
+              <p>{m.editor.noSlideSelectedHint}</p>
             </div>
           )}
         </main>
@@ -1383,8 +1385,8 @@ export function ScreenshotEditor() {
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Nothing to inspect</p>
-              <p className="text-xs">Slide settings will appear here once you add or select one.</p>
+              <p className="font-medium text-foreground">{m.editor.nothingToInspectTitle}</p>
+              <p className="text-xs">{m.editor.nothingToInspectHint}</p>
             </div>
           )}
         </aside>

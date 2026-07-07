@@ -11,6 +11,7 @@ import {
   type Rect,
 } from "@/lib/layout-rects";
 import { img } from "@/lib/image-cache";
+import { useI18n } from "@/lib/i18n";
 import { pickText, resolveScreenshot } from "@/lib/locale";
 import type {
   Device,
@@ -162,6 +163,7 @@ export function SlideCanvas({
   previewScale = 1,
   hideEmpty,
 }: Props) {
+  const { messages: m } = useI18n();
   const { cW, cH } = getCanvas(device, orientation);
   // Active center guides while dragging (editable canvas only).
   const [guides, setGuides] = React.useState<SnapGuides>({});
@@ -235,13 +237,13 @@ export function SlideCanvas({
                 fontWeight: 800,
                 fontSize: cW * 0.07,
                 boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
-              }}
-            >
-              {(appName || "A").slice(0, 1).toUpperCase()}
+            }}
+          >
+              {(appName || m.canvas.appInitial).slice(0, 1).toUpperCase()}
             </div>
           )}
           <div>
-            <div style={{ fontSize: cW * 0.06, fontWeight: 800, lineHeight: 1.05 }}>{appName || "App"}</div>
+            <div style={{ fontSize: cW * 0.06, fontWeight: 800, lineHeight: 1.05 }}>{appName || m.canvas.appFallback}</div>
             {tagline && (
               <EditableText
                 value={pickText(tagline.text, locale)}

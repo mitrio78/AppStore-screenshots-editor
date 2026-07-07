@@ -4,7 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Copy, GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LAYOUT_LABEL } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import { pickText } from "@/lib/locale";
 import type { Device, Orientation, Slide, Theme } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -58,6 +58,7 @@ function SlideThumbBase({
   onDelete,
   onDuplicate,
 }: Props) {
+  const { layoutLabel, messages: m } = useI18n();
   // Sidebar title comes from the slide's first text element.
   const firstText = slide.elements.find((el) => el.kind === "text");
   const headline = firstText ? pickText(firstText.text, locale) : "";
@@ -90,7 +91,7 @@ function SlideThumbBase({
         className="flex w-3 cursor-grab items-center justify-center text-muted-foreground/60 hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring active:cursor-grabbing"
         {...attributes}
         {...listeners}
-        aria-label={`Reorder slide ${index + 1} (press space, then arrow keys)`}
+        aria-label={m.slideThumb.reorderAria(index)}
       >
         <GripVertical className="h-4 w-4" />
       </button>
@@ -130,11 +131,11 @@ function SlideThumbBase({
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-[10px] uppercase tracking-wide text-muted-foreground">
-            {`Slide ${index + 1} · ${LAYOUT_LABEL[slide.layout]}`}
+            {m.slideThumb.label(index, layoutLabel(slide.layout))}
           </span>
           <span className="truncate text-sm font-medium leading-tight">
             {headline.split("\n")[0] || (
-              <em className="font-normal text-muted-foreground">Untitled</em>
+              <em className="font-normal text-muted-foreground">{m.slideThumb.untitled}</em>
             )}
           </span>
         </div>
@@ -148,8 +149,8 @@ function SlideThumbBase({
           variant="ghost"
           className="h-6 w-6"
           onClick={onDuplicate}
-          aria-label={`Duplicate slide ${index + 1}`}
-          title="Duplicate slide"
+          aria-label={m.slideThumb.duplicateAria(index)}
+          title={m.slideThumb.duplicateTitle}
         >
           <Copy className="h-3.5 w-3.5" />
         </Button>
@@ -159,8 +160,8 @@ function SlideThumbBase({
           variant="ghost"
           className="h-6 w-6 hover:text-destructive"
           onClick={onDelete}
-          aria-label={`Delete slide ${index + 1}`}
-          title="Delete slide (undoable)"
+          aria-label={m.slideThumb.deleteAria(index)}
+          title={m.slideThumb.deleteTitle}
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>

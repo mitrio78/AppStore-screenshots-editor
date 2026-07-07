@@ -17,6 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { Copy, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 import type { Device, Orientation, Slide, Theme } from "@/lib/types";
 import { SlideThumb } from "./slide-thumb";
 
@@ -55,6 +56,7 @@ export function Sidebar({
   onApplyTemplate,
   onAdd,
 }: Props) {
+  const { messages: m } = useI18n();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -72,9 +74,9 @@ export function Sidebar({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b p-3">
-        <h2 className="text-sm font-semibold">Slides</h2>
+        <h2 className="text-sm font-semibold">{m.sidebar.title}</h2>
         <p className="text-xs text-muted-foreground">
-          {slides.length} slide{slides.length === 1 ? "" : "s"} · drag to reorder
+          {m.sidebar.count(slides.length)}
         </p>
       </div>
 
@@ -101,9 +103,9 @@ export function Sidebar({
               ))}
               {slides.length === 0 && (
                 <div className="rounded-lg border border-dashed p-6 text-center">
-                  <p className="text-xs font-medium text-foreground">No slides yet</p>
+                  <p className="text-xs font-medium text-foreground">{m.sidebar.noSlidesTitle}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Click <span className="font-semibold">Add slide</span> to get started.
+                    {m.sidebar.noSlidesHint}
                   </p>
                 </div>
               )}
@@ -119,9 +121,9 @@ export function Sidebar({
           variant="outline"
           onClick={onApplyTemplate}
           disabled={disabled || !activeId || slides.length < 2}
-          title="Применить шаблон активного слайда ко всем остальным слайдам текущей колоды"
+          title={m.sidebar.applyTemplateTitle}
         >
-          <Copy data-icon="inline-start" /> Применить шаблон на все слайды
+          <Copy data-icon="inline-start" /> {m.sidebar.applyTemplate}
         </Button>
         <Button
           type="button"
@@ -130,7 +132,7 @@ export function Sidebar({
           onClick={onAdd}
           disabled={disabled}
         >
-          <Plus data-icon="inline-start" /> Add slide
+          <Plus data-icon="inline-start" /> {m.sidebar.addSlide}
         </Button>
       </div>
     </div>

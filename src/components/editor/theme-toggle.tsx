@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 
 export const THEME_KEY = "screenshot-studio:theme";
 
@@ -10,6 +11,7 @@ export const THEME_KEY = "screenshot-studio:theme";
 // The initial class is set by an inline script in layout.tsx to avoid a flash.
 export function ThemeToggle() {
   const [dark, setDark] = React.useState(false);
+  const { messages: m } = useI18n();
 
   React.useEffect(() => {
     setDark(document.documentElement.classList.contains("dark"));
@@ -32,8 +34,8 @@ export function ThemeToggle() {
       size="icon"
       className="h-8 w-8"
       onClick={toggle}
-      title={dark ? "Light theme" : "Dark theme"}
-      aria-label="Toggle editor theme"
+      title={dark ? m.toolbar.lightTheme : m.toolbar.darkTheme}
+      aria-label={m.toolbar.toggleTheme}
     >
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>

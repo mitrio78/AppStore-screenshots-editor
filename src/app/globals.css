@@ -55,6 +55,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family:
+      var(--font-inter),
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      "Hiragino Sans",
+      "Hiragino Kaku Gothic ProN",
+      "Yu Gothic",
+      Meiryo,
+      "Noto Sans JP",
+      "Noto Sans CJK JP",
+      "Noto Sans KR",
+      "Apple Color Emoji",
+      "Segoe UI Emoji",
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -99,4 +115,3 @@
   -webkit-user-select: text;
   user-select: text;
 }
-

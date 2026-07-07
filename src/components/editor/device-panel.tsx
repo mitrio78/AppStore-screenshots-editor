@@ -3,6 +3,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { DEFAULT_SHADOW, FRAME_COLORS } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import { defaultRectsFor, getCanvasSize } from "@/lib/layout-rects";
 import type {
   Device,
@@ -35,6 +36,7 @@ export function currentDeviceRect(
 }
 
 export function DevicePanel({ slide, device, orientation, onChange }: Props) {
+  const { frameColorLabel, messages: m } = useI18n();
   const { cW } = getCanvasSize(device, orientation);
   const rect = currentDeviceRect(slide, device, orientation, "device");
   const shadow = slide.deviceShadow;
@@ -64,10 +66,10 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
 
   return (
     <div className="space-y-2.5 rounded-md border bg-muted/30 p-3">
-      <Label className="text-xs font-semibold">Mockup</Label>
+      <Label className="text-xs font-semibold">{m.device.mockup}</Label>
 
       <div className="space-y-1">
-        <Label className="text-[11px] text-muted-foreground">Body color</Label>
+        <Label className="text-[11px] text-muted-foreground">{m.device.bodyColor}</Label>
         <div className="flex flex-wrap gap-1.5">
           {FRAME_COLORS.map((c) => (
             <button
@@ -82,8 +84,8 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
                   : "border-border hover:border-foreground/40"
               }`}
               style={{ background: c.swatch }}
-              title={c.label}
-              aria-label={`Frame color ${c.label}`}
+              title={frameColorLabel(c.id, c.label)}
+              aria-label={m.device.frameColorAria(frameColorLabel(c.id, c.label))}
             />
           ))}
         </div>
@@ -92,7 +94,7 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
       {rect && (
         <div className="flex items-end gap-2">
           <div className="flex-1 space-y-1">
-            <Label className="text-[11px] text-muted-foreground">Width, % of canvas</Label>
+            <Label className="text-[11px] text-muted-foreground">{m.device.widthCanvas}</Label>
             <NumberField
               min={10}
               max={200}
@@ -100,7 +102,7 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
               className="h-8 text-xs"
               value={widthPct}
               onCommit={resize}
-              ariaLabel="Mockup width, % of canvas"
+              ariaLabel={m.device.widthCanvasAria}
             />
           </div>
           <Button
@@ -117,9 +119,9 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
                   : undefined,
               })
             }
-            title="Reset mockup position and size to the layout default"
+            title={m.device.resetPlacementTitle}
           >
-            Reset placement
+            {m.device.resetPlacement}
           </Button>
         </div>
       )}
@@ -131,18 +133,18 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
             checked={shadow ? shadow.enabled : false}
             onChange={(e) => patchShadow({ enabled: e.target.checked })}
           />
-          Custom shadow
+          {m.device.customShadow}
         </label>
         {shadow?.enabled && (
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <ColorField
-                label="Color"
+                label={m.device.color}
                 value={shadow.color}
                 onChange={(color) => patchShadow({ color })}
               />
               <SliderField
-                label="Opacity"
+                label={m.device.opacity}
                 value={Math.round(shadow.opacity * 100)}
                 min={0}
                 max={100}
@@ -151,7 +153,7 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
               />
             </div>
             <SliderField
-              label="Blur"
+              label={m.device.blur}
               value={shadow.blur}
               min={0}
               max={300}
@@ -160,7 +162,7 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
             />
             <div className="grid grid-cols-2 gap-2">
               <SliderField
-                label="Offset X"
+                label={m.device.offsetX}
                 value={shadow.offsetX}
                 min={-150}
                 max={150}
@@ -168,7 +170,7 @@ export function DevicePanel({ slide, device, orientation, onChange }: Props) {
                 onChange={(offsetX) => patchShadow({ offsetX })}
               />
               <SliderField
-                label="Offset Y"
+                label={m.device.offsetY}
                 value={shadow.offsetY}
                 min={-150}
                 max={150}

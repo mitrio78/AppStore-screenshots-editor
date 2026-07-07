@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n";
 import { fileToDataUrl } from "@/lib/upload";
 import { refreshFontRegistry } from "./font-loader";
 
@@ -19,6 +20,7 @@ import { refreshFontRegistry } from "./font-loader";
 // Reads .ttf/.otf/.woff/.woff2, asks for the family name, POSTs to /api/fonts
 // and refreshes the shared registry so the new family appears everywhere.
 export function FontUploadButton() {
+  const { messages: m } = useI18n();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [pending, setPending] = React.useState<{ file: File; family: string } | null>(null);
   const [saving, setSaving] = React.useState(false);
@@ -38,10 +40,10 @@ export function FontUploadButton() {
       const json = (await resp.json()) as { ok: boolean; error?: string };
       if (!json.ok) throw new Error(json.error || `HTTP ${resp.status}`);
       await refreshFontRegistry();
-      toast.success(`Font "${family}" added`);
+      toast.success(m.fontUpload.added(family));
       setPending(null);
     } catch (e) {
-      toast.error("Couldn't upload font", {
+      toast.error(m.fontUpload.uploadError, {
         description: e instanceof Error ? e.message : String(e),
       });
     } finally {
@@ -57,8 +59,8 @@ export function FontUploadButton() {
         size="icon"
         className="h-8 w-8 shrink-0"
         onClick={() => inputRef.current?.click()}
-        title="Upload a font file (.ttf/.otf/.woff2)"
-        aria-label="Upload font"
+        title={m.fontUpload.buttonTitle}
+        aria-label={m.fontUpload.buttonAria}
       >
         <Upload className="h-3.5 w-3.5" />
       </Button>
@@ -80,13 +82,13 @@ export function FontUploadButton() {
       <Dialog open={!!pending} onOpenChange={(open) => !open && !saving && setPending(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Add font</DialogTitle>
+            <DialogTitle>{m.fontUpload.dialogTitle}</DialogTitle>
             <DialogDescription>
-              {pending?.file.name} — set the family name to use in text fields.
+              {pending ? m.fontUpload.description(pending.file.name) : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
-            <Label className="text-xs">Family name</Label>
+            <Label className="text-xs">{m.fontUpload.familyName}</Label>
             <Input
               value={pending?.family || ""}
               onChange={(e) =>
@@ -100,10 +102,10 @@ export function FontUploadButton() {
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" disabled={saving} onClick={() => setPending(null)}>
-              Cancel
+              {m.common.cancel}
             </Button>
             <Button size="sm" disabled={saving || !pending?.family.trim()} onClick={() => void save()}>
-              {saving ? "Saving…" : "Add font"}
+              {saving ? m.common.saving : m.fontUpload.addFont}
             </Button>
           </div>
         </DialogContent>

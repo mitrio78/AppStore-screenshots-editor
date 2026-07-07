@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { familiesOf } from "@/lib/fonts";
+import { useI18n } from "@/lib/i18n";
 import type {
   ElementTransform,
   FreeElement,
@@ -74,6 +75,7 @@ export function ElementPanel({
   onDeleteElement,
   onDuplicateElement,
 }: Props) {
+  const { messages: m } = useI18n();
   const imageInputRef = React.useRef<HTMLInputElement>(null);
 
   const freeElement: FreeElement | undefined = selectedElementId
@@ -88,7 +90,7 @@ export function ElementPanel({
   return (
     <div className="space-y-3 rounded-md border bg-muted/30 p-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold">Elements</Label>
+        <Label className="text-xs font-semibold">{m.elements.title}</Label>
         <div className="flex gap-1">
           <Button
             type="button"
@@ -96,9 +98,9 @@ export function ElementPanel({
             size="sm"
             className="h-7 px-2 text-[11px]"
             onClick={onAddText}
-            title="Add a text field"
+            title={m.elements.addTextTitle}
           >
-            <Type className="h-3.5 w-3.5" /> Text
+            <Type className="h-3.5 w-3.5" /> {m.common.text}
           </Button>
           <Button
             type="button"
@@ -106,9 +108,9 @@ export function ElementPanel({
             size="sm"
             className="h-7 px-2 text-[11px]"
             onClick={() => imageInputRef.current?.click()}
-            title="Add an image / sticker / badge (PNG with transparency works best)"
+            title={m.elements.addImageTitle}
           >
-            <ImagePlus className="h-3.5 w-3.5" /> Image
+            <ImagePlus className="h-3.5 w-3.5" /> {m.common.image}
           </Button>
           <input
             ref={imageInputRef}
@@ -126,21 +128,21 @@ export function ElementPanel({
       </div>
 
       <div className="flex items-center gap-2 rounded border bg-background/50 p-2">
-        <Label className="shrink-0 text-[11px] text-muted-foreground">Copy/Paste</Label>
+        <Label className="shrink-0 text-[11px] text-muted-foreground">{m.elements.copyPaste}</Label>
         <Select
           value={clipboardMode}
           onValueChange={(value) => onClipboardModeChange(value as ClipboardMode)}
         >
           <SelectTrigger
             className="h-8 flex-1 text-xs"
-            aria-label="Text copy and paste mode"
+            aria-label={m.elements.copyPasteAria}
           >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="format">Text + format</SelectItem>
-              <SelectItem value="text">Text only</SelectItem>
+              <SelectItem value="format">{m.elements.textPlusFormat}</SelectItem>
+              <SelectItem value="text">{m.elements.textOnly}</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -157,14 +159,14 @@ export function ElementPanel({
         />
       ) : isDeviceSelected && selectedElementId ? (
         <DeviceControls
-          label={selectedElementId === "device" ? "Device" : "Back device"}
+          label={selectedElementId === "device" ? m.elements.device : m.elements.backDevice}
           rotation={deviceTransform?.rotation ?? 0}
           onRotate={(rotation) => onPatchTransform(selectedElementId, { rotation })}
           onReorder={(dir) => onReorderLayer(selectedElementId, dir)}
         />
       ) : (
         <div className="rounded border border-dashed bg-background/40 p-4 text-center text-[11px] text-muted-foreground">
-          Click an element on the canvas to edit it
+          {m.elements.emptyHint}
         </div>
       )}
     </div>
@@ -180,11 +182,12 @@ function RotationSlider({
   onRotate: (r: number) => void;
   label: string;
 }) {
+  const { messages: m } = useI18n();
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <Label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          <RotateCw className="h-3 w-3" /> Rotation
+          <RotateCw className="h-3 w-3" /> {m.elements.rotation}
         </Label>
         <span className="text-[11px] tabular-nums text-muted-foreground">{rotation}°</span>
       </div>
@@ -196,27 +199,28 @@ function RotationSlider({
         value={rotation}
         onChange={(e) => onRotate(Number(e.target.value))}
         className="w-full"
-        aria-label={`${label} rotation`}
+        aria-label={m.elements.rotationAria(label)}
       />
     </div>
   );
 }
 
 function LayerRow({ onReorder }: { onReorder: (dir: LayerDir) => void }) {
+  const { messages: m } = useI18n();
   return (
     <div className="space-y-1">
-      <Label className="text-[11px] text-muted-foreground">Layer</Label>
+      <Label className="text-[11px] text-muted-foreground">{m.elements.layer}</Label>
       <div className="grid grid-cols-4 gap-1">
-        <LayerButton onClick={() => onReorder("back")} label="Send to back">
+        <LayerButton onClick={() => onReorder("back")} label={m.elements.sendToBack}>
           <ArrowDownToLine className="h-3.5 w-3.5" />
         </LayerButton>
-        <LayerButton onClick={() => onReorder("down")} label="Send backward">
+        <LayerButton onClick={() => onReorder("down")} label={m.elements.sendBackward}>
           <ChevronDown className="h-3.5 w-3.5" />
         </LayerButton>
-        <LayerButton onClick={() => onReorder("up")} label="Bring forward">
+        <LayerButton onClick={() => onReorder("up")} label={m.elements.bringForward}>
           <ChevronUp className="h-3.5 w-3.5" />
         </LayerButton>
-        <LayerButton onClick={() => onReorder("front")} label="Bring to front">
+        <LayerButton onClick={() => onReorder("front")} label={m.elements.bringToFront}>
           <ArrowUpToLine className="h-3.5 w-3.5" />
         </LayerButton>
       </div>
@@ -235,6 +239,7 @@ function DeviceControls({
   onRotate: (r: number) => void;
   onReorder: (dir: LayerDir) => void;
 }) {
+  const { messages: m } = useI18n();
   return (
     <div className="space-y-2 rounded border bg-background/60 p-2.5">
       <span className="text-xs font-medium">{label}</span>
@@ -259,10 +264,11 @@ function FreeElementControls({
   onDelete: () => void;
   onDuplicate: () => void;
 }) {
+  const { messages: m } = useI18n();
   return (
     <div className="space-y-2.5 rounded border bg-background/60 p-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium">{el.kind === "text" ? "Text field" : "Image"}</span>
+        <span className="text-xs font-medium">{el.kind === "text" ? m.elements.textField : m.elements.image}</span>
         <div className="flex gap-0.5">
           <Button
             type="button"
@@ -270,8 +276,8 @@ function FreeElementControls({
             variant="ghost"
             className="h-6 w-6"
             onClick={onDuplicate}
-            title="Duplicate element"
-            aria-label="Duplicate element"
+            title={m.elements.duplicateElement}
+            aria-label={m.elements.duplicateElement}
           >
             <Copy className="h-3.5 w-3.5" />
           </Button>
@@ -281,8 +287,8 @@ function FreeElementControls({
             variant="ghost"
             className="h-6 w-6 hover:text-destructive"
             onClick={onDelete}
-            title="Delete element (Backspace)"
-            aria-label="Delete element"
+            title={m.elements.deleteElement}
+            aria-label={m.elements.deleteElement}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -293,7 +299,7 @@ function FreeElementControls({
 
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] text-muted-foreground">Opacity</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.elements.opacity}</Label>
           <span className="text-[11px] tabular-nums text-muted-foreground">
             {Math.round((el.opacity ?? 1) * 100)}%
           </span>
@@ -306,14 +312,14 @@ function FreeElementControls({
           value={Math.round((el.opacity ?? 1) * 100)}
           onChange={(e) => onPatch({ opacity: Number(e.target.value) / 100 })}
           className="w-full"
-          aria-label="Element opacity"
+          aria-label={m.elements.elementOpacity}
         />
       </div>
 
       <RotationSlider
         rotation={el.transform.rotation ?? 0}
         onRotate={onRotate}
-        label="Element"
+        label={m.elements.element}
       />
       <LayerRow onReorder={onReorder} />
     </div>
@@ -327,13 +333,14 @@ function TextControls({
   el: TextElement;
   onPatch: (patch: Partial<TextElement>) => void;
 }) {
+  const { messages: m } = useI18n();
   const fonts = useFonts();
   const families = familiesOf(fonts);
 
   return (
     <div className="space-y-2.5">
       <div className="space-y-1">
-        <Label className="text-[11px] text-muted-foreground">Font</Label>
+        <Label className="text-[11px] text-muted-foreground">{m.elements.font}</Label>
         <div className="flex items-center gap-1">
           <Select value={el.fontFamily} onValueChange={(fontFamily) => onPatch({ fontFamily })}>
             <SelectTrigger className="h-8 flex-1 text-xs">
@@ -353,17 +360,17 @@ function TextControls({
 
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">Size</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.elements.size}</Label>
           <NumberField
             min={8}
             className="h-8 text-xs"
             value={el.fontSize}
             onCommit={(v) => onPatch({ fontSize: v })}
-            ariaLabel="Font size"
+            ariaLabel={m.elements.fontSize}
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">Weight</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.elements.weight}</Label>
           <Select
             value={String(el.fontWeight)}
             onValueChange={(w) => onPatch({ fontWeight: Number(w) })}
@@ -383,9 +390,9 @@ function TextControls({
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <ColorField label="Color" value={el.color} onChange={(color) => onPatch({ color })} />
+        <ColorField label={m.elements.color} value={el.color} onChange={(color) => onPatch({ color })} />
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">Align</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.elements.align}</Label>
           <div className="grid grid-cols-3 gap-1">
             {(
               [
@@ -401,8 +408,20 @@ function TextControls({
                 variant={el.align === align ? "default" : "outline"}
                 className="h-8 px-0"
                 onClick={() => onPatch({ align })}
-                title={`Align ${align}`}
-                aria-label={`Align ${align}`}
+                title={
+                  align === "left"
+                    ? m.elements.alignLeft
+                    : align === "center"
+                      ? m.elements.alignCenter
+                      : m.elements.alignRight
+                }
+                aria-label={
+                  align === "left"
+                    ? m.elements.alignLeft
+                    : align === "center"
+                      ? m.elements.alignCenter
+                      : m.elements.alignRight
+                }
               >
                 <Icon className="h-3.5 w-3.5" />
               </Button>
@@ -413,7 +432,7 @@ function TextControls({
 
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">Line height</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.elements.lineHeight}</Label>
           <NumberField
             step={0.05}
             min={0.5}
@@ -421,17 +440,17 @@ function TextControls({
             className="h-8 text-xs"
             value={el.lineHeight}
             onCommit={(v) => onPatch({ lineHeight: v })}
-            ariaLabel="Line height"
+            ariaLabel={m.elements.lineHeight}
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">Letter spacing</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.elements.letterSpacing}</Label>
           <NumberField
             step={0.5}
             className="h-8 text-xs"
             value={el.letterSpacing ?? 0}
             onCommit={(v) => onPatch({ letterSpacing: v })}
-            ariaLabel="Letter spacing"
+            ariaLabel={m.elements.letterSpacing}
           />
         </div>
       </div>
@@ -442,7 +461,7 @@ function TextControls({
           checked={el.textTransform === "uppercase"}
           onChange={(e) => onPatch({ textTransform: e.target.checked ? "uppercase" : "none" })}
         />
-        UPPERCASE
+        {m.elements.uppercase}
       </label>
 
       <BoxControls el={el} onPatch={onPatch} />
@@ -457,6 +476,7 @@ function BoxControls({
   el: TextElement;
   onPatch: (patch: Partial<TextElement>) => void;
 }) {
+  const { messages: m } = useI18n();
   const box = el.box;
   return (
     <div className="space-y-2 rounded border border-dashed p-2">
@@ -472,33 +492,33 @@ function BoxControls({
             })
           }
         />
-        Field background
+        {m.elements.fieldBackground}
       </label>
       {box && (
         <div className="grid grid-cols-3 gap-2">
           <ColorField
-            label="Fill"
+            label={m.elements.fill}
             value={box.color}
             onChange={(color) => onPatch({ box: { ...box, color } })}
           />
           <div className="space-y-1">
-            <Label className="text-[11px] text-muted-foreground">Padding</Label>
+            <Label className="text-[11px] text-muted-foreground">{m.elements.padding}</Label>
             <NumberField
               min={0}
               className="h-8 text-xs"
               value={box.padding}
               onCommit={(v) => onPatch({ box: { ...box, padding: v } })}
-              ariaLabel="Field padding"
+              ariaLabel={m.elements.fieldPadding}
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-[11px] text-muted-foreground">Radius</Label>
+            <Label className="text-[11px] text-muted-foreground">{m.elements.radius}</Label>
             <NumberField
               min={0}
               className="h-8 text-xs"
               value={box.radius}
               onCommit={(v) => onPatch({ box: { ...box, radius: v } })}
-              ariaLabel="Field corner radius"
+              ariaLabel={m.elements.fieldCornerRadius}
             />
           </div>
         </div>
@@ -586,6 +606,7 @@ export function ColorField({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const { messages: m } = useI18n();
   // Native color input only understands #rrggbb — feed it a normalized value
   // but let the text field hold whatever the user types until it parses.
   const safe = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000";
@@ -598,7 +619,7 @@ export function ColorField({
           value={safe}
           onChange={(e) => onChange(e.target.value)}
           className="h-8 w-8 shrink-0 cursor-pointer rounded border bg-transparent p-0.5"
-          aria-label={`${label} color picker`}
+          aria-label={m.elements.colorPicker(label)}
         />
         <Input
           value={value}

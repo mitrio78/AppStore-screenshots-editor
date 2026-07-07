@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { DEVICE_LABEL, LAYOUT_LABEL } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import type {
   Device,
   DeviceElementId,
@@ -43,6 +43,7 @@ export function PreviewStage({
   onSelectElement,
   onDropScreenshot,
 }: Props) {
+  const { deviceLabel, layoutLabel, messages: m } = useI18n();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(0.2);
   const { cW, cH } = getCanvas(device, orientation);
@@ -98,13 +99,13 @@ export function PreviewStage({
       </div>
 
       <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-        <span className="font-medium text-foreground">{DEVICE_LABEL[device]}</span>
+        <span className="font-medium text-foreground">{deviceLabel(device)}</span>
         <span aria-hidden>·</span>
-        <span>{LAYOUT_LABEL[slide.layout]}</span>
+        <span>{layoutLabel(slide.layout)}</span>
         {orientation === "landscape" && (
           <>
             <span aria-hidden>·</span>
-            <span>landscape</span>
+            <span>{m.preview.landscape}</span>
           </>
         )}
       </div>

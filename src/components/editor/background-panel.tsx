@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { THEMES } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import { getCanvasSize } from "@/lib/layout-rects";
 import type { Background, Device, GradientStop, Orientation, ThemeId } from "@/lib/types";
 import { ColorField, NumberField } from "./element-panel";
@@ -57,6 +58,7 @@ export function BackgroundPanel({
   onApplyToDeck,
   onSpreadPanorama,
 }: Props) {
+  const { messages: m, themeName } = useI18n();
   const kind: BgKind = background?.type || "theme";
 
   function switchKind(next: BgKind) {
@@ -70,16 +72,16 @@ export function BackgroundPanel({
   return (
     <div className="space-y-2.5 rounded-md border bg-muted/30 p-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold">Background</Label>
+        <Label className="text-xs font-semibold">{m.background.title}</Label>
         <Button
           type="button"
           variant="ghost"
           size="sm"
           className="h-6 px-2 text-[10px] text-muted-foreground"
           onClick={onApplyToDeck}
-          title="Apply this background to every slide of the current device"
+          title={m.background.applyToAllTitle}
         >
-          Apply to all slides
+          {m.background.applyToAllSlides}
         </Button>
       </div>
 
@@ -88,10 +90,10 @@ export function BackgroundPanel({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="theme">Theme</SelectItem>
-          <SelectItem value="solid">Solid color</SelectItem>
-          <SelectItem value="gradient">Gradient</SelectItem>
-          <SelectItem value="image">Image</SelectItem>
+          <SelectItem value="theme">{m.background.theme}</SelectItem>
+          <SelectItem value="solid">{m.background.solid}</SelectItem>
+          <SelectItem value="gradient">{m.background.gradient}</SelectItem>
+          <SelectItem value="image">{m.background.image}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -107,8 +109,8 @@ export function BackgroundPanel({
                   t.id === themeId ? "border-primary ring-1 ring-primary" : "border-transparent hover:border-foreground/30"
                 }`}
                 style={{ background: `linear-gradient(135deg, ${t.bg} 55%, ${t.accent} 130%)` }}
-                title={t.name}
-                aria-label={`Theme ${t.name}`}
+                title={themeName(t.id)}
+                aria-label={m.background.themeAria(themeName(t.id))}
               />
             ))}
           </div>
@@ -118,14 +120,14 @@ export function BackgroundPanel({
               checked={inverted}
               onChange={(e) => onInvertedChange(e.target.checked)}
             />
-            Inverted (dark variant)
+            {m.background.inverted}
           </label>
         </div>
       )}
 
       {background?.type === "solid" && (
         <ColorField
-          label="Color"
+          label={m.background.color}
           value={background.color}
           onChange={(color) => onChange({ ...background, color })}
         />
@@ -175,6 +177,7 @@ function GradientControls({
   onChange: (bg: Background) => void;
   onSpreadPanorama: (count: number) => void;
 }) {
+  const { messages: m } = useI18n();
   function patchStop(i: number, patch: Partial<GradientStop>) {
     const stops = bg.stops.map((s, idx) => (idx === i ? { ...s, ...patch } : s));
     onChange({ ...bg, stops });
@@ -193,7 +196,7 @@ function GradientControls({
     <div className="space-y-2">
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] text-muted-foreground">Angle</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.background.angle}</Label>
           <div className="flex items-center gap-2">
             <span className="text-[11px] tabular-nums text-muted-foreground">{bg.angle}°</span>
             <Button
@@ -202,8 +205,8 @@ function GradientControls({
               size="icon"
               className="h-6 w-6"
               onClick={reverse}
-              title="Invert gradient colors"
-              aria-label="Invert gradient colors"
+              title={m.background.invertGradient}
+              aria-label={m.background.invertGradient}
             >
               <ArrowLeftRight className="h-3.5 w-3.5" />
             </Button>
@@ -217,7 +220,7 @@ function GradientControls({
           value={bg.angle}
           onChange={(e) => onChange({ ...bg, angle: Number(e.target.value) })}
           className="w-full"
-          aria-label="Gradient angle"
+          aria-label={m.background.gradientAngle}
         />
       </div>
 
@@ -229,7 +232,7 @@ function GradientControls({
               value={/^#[0-9a-fA-F]{6}$/.test(stop.color) ? stop.color : "#000000"}
               onChange={(e) => patchStop(i, { color: e.target.value })}
               className="h-7 w-7 shrink-0 cursor-pointer rounded border bg-transparent p-0.5"
-              aria-label={`Stop ${i + 1} color`}
+              aria-label={m.background.stopColor(i)}
             />
             <input
               type="range"
@@ -239,7 +242,7 @@ function GradientControls({
               value={Math.round(stop.position * 100)}
               onChange={(e) => patchStop(i, { position: Number(e.target.value) / 100 })}
               className="flex-1"
-              aria-label={`Stop ${i + 1} position`}
+              aria-label={m.background.stopPosition(i)}
             />
             <span className="w-8 text-right text-[10px] tabular-nums text-muted-foreground">
               {Math.round(stop.position * 100)}%
@@ -251,8 +254,8 @@ function GradientControls({
               className="h-6 w-6"
               disabled={bg.stops.length <= 2}
               onClick={() => onChange({ ...bg, stops: bg.stops.filter((_, idx) => idx !== i) })}
-              title="Remove stop"
-              aria-label={`Remove stop ${i + 1}`}
+              title={m.background.removeStop(i)}
+              aria-label={m.background.removeStop(i)}
             >
               <X className="h-3 w-3" />
             </Button>
@@ -271,14 +274,14 @@ function GradientControls({
             });
           }}
         >
-          <Plus className="h-3 w-3" /> Add stop
+          <Plus className="h-3 w-3" /> {m.background.addStop}
         </Button>
       </div>
 
       {bg.span && bg.span > 1 && (
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[11px] text-muted-foreground">Horizontal offset</Label>
+            <Label className="text-[11px] text-muted-foreground">{m.background.horizontalOffset}</Label>
             <span className="text-[10px] tabular-nums text-muted-foreground">
               {Math.round((bg.offsetX ?? 0) * 100)}%
             </span>
@@ -291,7 +294,7 @@ function GradientControls({
             value={Math.round((bg.offsetX ?? 0) * 100)}
             onChange={(e) => onChange({ ...bg, offsetX: Number(e.target.value) / 100 })}
             className="w-full"
-            aria-label="Gradient panorama offset"
+            aria-label={m.background.panoramaOffset}
           />
         </div>
       )}
@@ -325,6 +328,7 @@ function SpreadAcrossDeck({
   slideCount: number;
   onSpread: (count: number) => void;
 }) {
+  const { messages: m } = useI18n();
   const maxSpread = Math.max(0, slideCount - Math.max(slideIndex, 0));
   const [spreadCount, setSpreadCount] = React.useState(Math.max(2, maxSpread));
   React.useEffect(() => {
@@ -334,7 +338,7 @@ function SpreadAcrossDeck({
 
   return (
     <div className="space-y-1.5 rounded border border-dashed p-2">
-      <Label className="text-[11px] font-medium">Panorama across deck</Label>
+      <Label className="text-[11px] font-medium">{m.background.panoramaAcrossDeck}</Label>
       {maxSpread >= 2 ? (
         <>
           <div className="flex items-center gap-1.5">
@@ -345,30 +349,30 @@ function SpreadAcrossDeck({
               className="h-8 w-16 text-xs"
               value={spreadCount}
               onCommit={setSpreadCount}
-              ariaLabel="Panorama slide count"
+              ariaLabel={m.background.panoramaSlideCount}
             />
-            <span className="text-[11px] text-muted-foreground">slides</span>
+            <span className="text-[11px] text-muted-foreground">{m.background.slides}</span>
             <Button
               type="button"
               variant="outline"
               size="sm"
               className="ml-auto h-8 text-[11px]"
               onClick={() => onSpread(spreadCount)}
-              title={`Spread this background across slides ${slideIndex + 1}–${slideIndex + spreadCount}`}
+              title={m.background.spreadTitle(slideIndex + 1, slideIndex + spreadCount)}
             >
-              <GalleryHorizontal className="h-3.5 w-3.5" /> Spread
+              <GalleryHorizontal className="h-3.5 w-3.5" /> {m.background.spread}
             </Button>
           </div>
           <p className="text-[10px] leading-snug text-muted-foreground">
-            Applies to slides {slideIndex + 1}–{slideIndex + spreadCount} with evenly stepped offsets.{" "}
+            {m.background.panoramaHelpIntro(slideIndex + 1, slideIndex + spreadCount)}{" "}
             {kind === "image"
-              ? `Seamless with an image around ${spreadCount * cW}×${cH}px.`
-              : "Use a horizontal angle (90°) for the clearest left-to-right pan."}
+              ? m.background.panoramaHelpImage(spreadCount * cW, cH)
+              : m.background.panoramaHelpGradient}
           </p>
         </>
       ) : (
         <p className="text-[10px] text-muted-foreground">
-          Needs at least one slide after this one — select an earlier slide to spread from.
+          {m.background.panoramaNeedsEarlier}
         </p>
       )}
     </div>
@@ -392,16 +396,17 @@ function ImageControls({
   onChange: (bg: Background) => void;
   onSpreadPanorama: (count: number) => void;
 }) {
+  const { messages: m } = useI18n();
   return (
     <div className="space-y-2">
       <ScreenshotPicker
-        label="Background image"
+        label={m.background.backgroundImage}
         value={bg.src}
         onChange={(src) => onChange({ ...bg, src })}
       />
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">Fit</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.background.fit}</Label>
           <Select
             value={bg.fit}
             onValueChange={(fit) => onChange({ ...bg, fit: fit as typeof bg.fit })}
@@ -410,15 +415,15 @@ function ImageControls({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cover">Cover</SelectItem>
-              <SelectItem value="contain">Contain</SelectItem>
-              <SelectItem value="panorama">Panorama</SelectItem>
+              <SelectItem value="cover">{m.background.cover}</SelectItem>
+              <SelectItem value="contain">{m.background.contain}</SelectItem>
+              <SelectItem value="panorama">{m.background.panorama}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[11px] text-muted-foreground">Blur</Label>
+            <Label className="text-[11px] text-muted-foreground">{m.background.blur}</Label>
             <span className="text-[10px] tabular-nums text-muted-foreground">{bg.blur || 0}px</span>
           </div>
           <input
@@ -429,13 +434,13 @@ function ImageControls({
             value={bg.blur || 0}
             onChange={(e) => onChange({ ...bg, blur: Number(e.target.value) || undefined })}
             className="mt-2 w-full"
-            aria-label="Background blur"
+            aria-label={m.background.backgroundBlur}
           />
         </div>
       </div>
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] text-muted-foreground">Opacity</Label>
+          <Label className="text-[11px] text-muted-foreground">{m.background.opacity}</Label>
           <span className="text-[10px] tabular-nums text-muted-foreground">
             {Math.round((bg.opacity ?? 1) * 100)}%
           </span>
@@ -451,13 +456,13 @@ function ImageControls({
             onChange({ ...bg, opacity: v >= 1 ? undefined : v });
           }}
           className="w-full"
-          aria-label="Background image opacity"
+          aria-label={m.background.backgroundImageOpacity}
         />
       </div>
       {bg.fit === "panorama" && (
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[11px] text-muted-foreground">Horizontal offset</Label>
+            <Label className="text-[11px] text-muted-foreground">{m.background.horizontalOffset}</Label>
             <span className="text-[10px] tabular-nums text-muted-foreground">
               {Math.round((bg.offsetX ?? 0) * 100)}%
             </span>
@@ -470,7 +475,7 @@ function ImageControls({
             value={Math.round((bg.offsetX ?? 0) * 100)}
             onChange={(e) => onChange({ ...bg, offsetX: Number(e.target.value) / 100 })}
             className="w-full"
-            aria-label="Panorama offset"
+            aria-label={m.background.panoramaOffset}
           />
         </div>
       )}
@@ -487,7 +492,7 @@ function ImageControls({
       <Input
         value={bg.src}
         onChange={(e) => onChange({ ...bg, src: e.target.value })}
-        placeholder="/backgrounds/… (supports {locale})"
+        placeholder={m.background.imagePathPlaceholder}
         className="h-7 font-mono text-[10px]"
         spellCheck={false}
       />

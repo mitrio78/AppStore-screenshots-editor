@@ -3,6 +3,7 @@ import * as React from "react";
 import { Image as ImageIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { didFail, img } from "@/lib/image-cache";
+import { useI18n } from "@/lib/i18n";
 import { uploadImageFile } from "@/lib/upload";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function ScreenshotPicker({ label, value, onChange }: Props) {
+  const { messages: m } = useI18n();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -38,11 +40,11 @@ export function ScreenshotPicker({ label, value, onChange }: Props) {
   // Only flag "image not found" when the path is a real URL that we tried and failed.
   const knownMissing = hasValue && !isData && !isTemplate && didFail(value);
   const valueLabel = uploading
-    ? "saving…"
+    ? m.picker.saving
     : !hasValue
-      ? "drop image, or click Pick"
+      ? m.picker.dropOrPick
       : isData
-        ? "uploaded image (not on disk)"
+        ? m.picker.uploadedNotOnDisk
         : value.replace(/^.*\/(?=[^/]+\/[^/]+$)/, "…/");
 
   return (
@@ -73,7 +75,7 @@ export function ScreenshotPicker({ label, value, onChange }: Props) {
               alt=""
               className="h-full w-full object-cover"
               draggable={false}
-              onError={() => setError("Image failed to load")}
+              onError={() => setError(m.picker.imageFailedToLoad)}
             />
           ) : (
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -82,7 +84,7 @@ export function ScreenshotPicker({ label, value, onChange }: Props) {
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-xs font-medium">{label}</span>
           <span className="truncate text-[10px] text-muted-foreground">
-            {dragging ? "Drop to upload" : valueLabel}
+            {dragging ? m.picker.dropToUpload : valueLabel}
           </span>
         </div>
         <input
@@ -105,7 +107,7 @@ export function ScreenshotPicker({ label, value, onChange }: Props) {
           onClick={() => inputRef.current?.click()}
         >
           <Upload className="h-3.5 w-3.5" />
-          Pick
+          {m.common.pick}
         </Button>
         {hasValue && (
           <Button
@@ -117,8 +119,8 @@ export function ScreenshotPicker({ label, value, onChange }: Props) {
               onChange("");
               setError(null);
             }}
-            aria-label="Clear screenshot"
-            title="Clear"
+            aria-label={m.picker.clearScreenshot}
+            title={m.common.clear}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -127,7 +129,7 @@ export function ScreenshotPicker({ label, value, onChange }: Props) {
       {error ? (
         <p className="text-[11px] text-destructive">{error}</p>
       ) : knownMissing ? (
-        <p className="text-[11px] text-destructive">Image not found at {value}</p>
+        <p className="text-[11px] text-destructive">{m.picker.imageNotFound(value)}</p>
       ) : null}
     </div>
   );

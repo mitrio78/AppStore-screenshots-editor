@@ -2,6 +2,7 @@
 import * as React from "react";
 import { cssFontFamily } from "@/lib/fonts";
 import { didFail, img } from "@/lib/image-cache";
+import { useI18n } from "@/lib/i18n";
 import { pickText, resolveScreenshot } from "@/lib/locale";
 import type { FreeElement, TextElement } from "@/lib/types";
 
@@ -107,6 +108,8 @@ export function FreeElementView({
   onTextChange?: (v: string) => void;
   onFocus?: () => void;
 }) {
+  const { messages: m } = useI18n();
+
   if (el.kind === "image") {
     const src = img(resolveScreenshot(el.src, locale));
     const missing = !src || didFail(el.src);
@@ -126,7 +129,7 @@ export function FreeElementView({
               fontSize: 14,
             }}
           >
-            image missing
+            {m.canvas.imageMissing}
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -167,7 +170,7 @@ export function FreeElementView({
         multiline
         onChange={onTextChange}
         onFocus={onFocus}
-        placeholder="Text"
+        placeholder={m.canvas.textPlaceholder}
         style={textElementStyle(el)}
       />
     </div>

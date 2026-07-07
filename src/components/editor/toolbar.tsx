@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { AlertTriangle, Check, Cloud, Download, RotateCcw } from "lucide-react";
+import { AlertTriangle, Check, Cloud, Download, Languages, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,11 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DEVICE_LABEL,
-  supportsLandscape,
-} from "@/lib/constants";
+import { supportsLandscape } from "@/lib/constants";
 import { detectPlatform } from "@/lib/defaults";
+import { supportedAppLocales, useI18n, type AppLocale } from "@/lib/i18n";
 import type { Device, Orientation } from "@/lib/types";
 import { ProjectSwitcher } from "./project-switcher";
 import { ThemeToggle } from "./theme-toggle";
@@ -51,6 +49,14 @@ type Props = {
 };
 
 export function Toolbar(props: Props) {
+  const {
+    locale: appLocale,
+    setLocale: setAppLocale,
+    localeShortLabels,
+    localeLabels,
+    deviceLabel: labelDevice,
+    messages: m,
+  } = useI18n();
   const platform = detectPlatform(props.device);
   const hasLandscape = supportsLandscape(props.device);
   const [resetOpen, setResetOpen] = React.useState(false);
@@ -66,7 +72,7 @@ export function Toolbar(props: Props) {
 
   const showLocale = props.locales.length > 1;
 
-  const deviceLabel = DEVICE_LABEL[props.device];
+  const deviceLabel = labelDevice(props.device);
 
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b bg-card/40 px-4 py-2">
@@ -81,9 +87,9 @@ export function Toolbar(props: Props) {
         value={props.appName}
         onChange={(e) => props.setAppName(e.target.value)}
         className="h-8 w-40 border-dashed text-sm font-semibold focus-visible:border-input focus-visible:border-solid focus-visible:bg-background"
-        placeholder="App name"
-        aria-label="App name"
-        title="App name (click to edit)"
+        placeholder={m.toolbar.appNamePlaceholder}
+        aria-label={m.toolbar.appNameAria}
+        title={m.toolbar.appNameTitle}
         disabled={props.busy}
       />
 
@@ -113,20 +119,20 @@ export function Toolbar(props: Props) {
         disabled={props.busy}
       >
         <SelectTrigger className="h-8 w-44 text-xs">
-          <SelectValue placeholder="Device">{deviceLabel}</SelectValue>
+          <SelectValue placeholder={m.toolbar.devicePlaceholder}>{deviceLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {platform === "ios" ? (
             <>
-              <SelectItem value="iphone">{DEVICE_LABEL.iphone}</SelectItem>
-              <SelectItem value="ipad">{DEVICE_LABEL.ipad}</SelectItem>
+              <SelectItem value="iphone">{labelDevice("iphone")}</SelectItem>
+              <SelectItem value="ipad">{labelDevice("ipad")}</SelectItem>
             </>
           ) : (
             <>
-              <SelectItem value="android">{DEVICE_LABEL.android}</SelectItem>
-              <SelectItem value="android-7">{DEVICE_LABEL["android-7"]}</SelectItem>
-              <SelectItem value="android-10">{DEVICE_LABEL["android-10"]}</SelectItem>
-              <SelectItem value="feature-graphic">{DEVICE_LABEL["feature-graphic"]}</SelectItem>
+              <SelectItem value="android">{labelDevice("android")}</SelectItem>
+              <SelectItem value="android-7">{labelDevice("android-7")}</SelectItem>
+              <SelectItem value="android-10">{labelDevice("android-10")}</SelectItem>
+              <SelectItem value="feature-graphic">{labelDevice("feature-graphic")}</SelectItem>
             </>
           )}
         </SelectContent>
@@ -142,8 +148,8 @@ export function Toolbar(props: Props) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="portrait">Portrait</SelectItem>
-            <SelectItem value="landscape">Landscape</SelectItem>
+            <SelectItem value="portrait">{m.toolbar.portrait}</SelectItem>
+            <SelectItem value="landscape">{m.toolbar.landscape}</SelectItem>
           </SelectContent>
         </Select>
       )}
@@ -166,14 +172,36 @@ export function Toolbar(props: Props) {
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <SaveStatus savedAt={props.savedAt} saveError={props.saveError} />
         <span aria-hidden className="h-5 w-px bg-border" />
+        <Select
+          value={appLocale}
+          onValueChange={(value) => setAppLocale(value as AppLocale)}
+          disabled={props.busy}
+        >
+          <SelectTrigger
+            className="h-8 w-28 text-xs"
+            title={m.language.title}
+            aria-label={m.language.aria}
+          >
+            <Languages className="h-3.5 w-3.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {supportedAppLocales().map((locale) => (
+              <SelectItem key={locale} value={locale}>
+                <span className="font-medium">{localeShortLabels[locale]}</span>
+                <span className="ml-2 text-muted-foreground">{localeLabels[locale]}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <ThemeToggle />
         <Button
           variant="ghost"
           size="icon"
           className="h-8 w-8"
           onClick={() => setResetOpen(true)}
-          title="Reset slides to defaults"
-          aria-label="Reset"
+          title={m.toolbar.resetTitle}
+          aria-label={m.toolbar.resetAria}
           disabled={props.busy}
         >
           <RotateCcw className="h-4 w-4" />
@@ -183,24 +211,24 @@ export function Toolbar(props: Props) {
           disabled={!!props.exporting}
           size="sm"
           className="h-8"
-          title="Export PNG/JPG at App Store sizes"
+          title={m.toolbar.exportTitle}
         >
           <Download className="h-4 w-4" />
-          {props.exporting ? `Exporting ${props.exporting}` : "Export…"}
+          {props.exporting ? m.toolbar.exporting(props.exporting) : `${m.common.export}...`}
         </Button>
       </div>
 
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Reset to defaults?</DialogTitle>
+            <DialogTitle>{m.toolbar.resetDialogTitle}</DialogTitle>
             <DialogDescription>
-              Choose whether to reset just <span className="font-medium">{deviceLabel}</span> or every device deck. Your edits, uploaded screenshots, and copy will be lost.
+              {m.toolbar.resetDialogDescription(deviceLabel)}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-wrap justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={() => setResetOpen(false)}>
-              Cancel
+              {m.common.cancel}
             </Button>
             <Button
               variant="outline"
@@ -210,7 +238,7 @@ export function Toolbar(props: Props) {
                 props.onResetDevice();
               }}
             >
-              Reset {deviceLabel} only
+              {m.toolbar.resetDeviceOnly(deviceLabel)}
             </Button>
             <Button
               variant="destructive"
@@ -220,7 +248,7 @@ export function Toolbar(props: Props) {
                 props.onResetAll();
               }}
             >
-              Reset all devices
+              {m.toolbar.resetAllDevices}
             </Button>
           </div>
         </DialogContent>
@@ -231,6 +259,7 @@ export function Toolbar(props: Props) {
 
 function SaveStatus({ savedAt, saveError }: { savedAt: number | null; saveError: string | null }) {
   const [, setTick] = React.useState(0);
+  const { messages: m } = useI18n();
   React.useEffect(() => {
     const t = setInterval(() => setTick((x) => x + 1), 60_000);
     return () => clearInterval(t);
@@ -242,7 +271,7 @@ function SaveStatus({ savedAt, saveError }: { savedAt: number | null; saveError:
         className="flex items-center gap-1 text-xs text-destructive"
         title={saveError}
       >
-        <AlertTriangle className="h-3.5 w-3.5" /> save failed
+        <AlertTriangle className="h-3.5 w-3.5" /> {m.toolbar.saveFailed}
       </span>
     );
   }
@@ -250,19 +279,19 @@ function SaveStatus({ savedAt, saveError }: { savedAt: number | null; saveError:
   if (!savedAt) {
     return (
       <span className="flex items-center gap-1 text-xs text-muted-foreground">
-        <Cloud className="h-3.5 w-3.5" /> not saved yet
+        <Cloud className="h-3.5 w-3.5" /> {m.toolbar.notSavedYet}
       </span>
     );
   }
   const seconds = Math.max(0, Math.round((Date.now() - savedAt) / 1000));
   const label =
     seconds < 5
-      ? "saved"
+      ? m.toolbar.saved
       : seconds < 60
-        ? `saved ${seconds}s ago`
+        ? m.toolbar.savedSecondsAgo(seconds)
         : seconds < 3600
-          ? `saved ${Math.round(seconds / 60)}m ago`
-          : `saved ${Math.round(seconds / 3600)}h ago`;
+          ? m.toolbar.savedMinutesAgo(Math.round(seconds / 60))
+          : m.toolbar.savedHoursAgo(Math.round(seconds / 3600));
   return (
     <span className="flex items-center gap-1 text-xs text-muted-foreground">
       <Check className="h-3.5 w-3.5 text-green-500" /> {label}

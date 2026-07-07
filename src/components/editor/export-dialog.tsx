@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DEVICE_LABEL, getExportSizes, type ExportSize } from "@/lib/constants";
+import { getExportSizes, type ExportSize } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n";
 import type { Device, Orientation } from "@/lib/types";
 
 export type ExportFormat = "png" | "jpg";
@@ -44,6 +45,7 @@ export function ExportDialog({
   slideCount,
   onExport,
 }: Props) {
+  const { deviceLabel, messages: m } = useI18n();
   const allSizes = getExportSizes(device, orientation);
   const [format, setFormat] = React.useState<ExportFormat>("png");
   const [quality, setQuality] = React.useState(0.9);
@@ -74,17 +76,16 @@ export function ExportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Export {DEVICE_LABEL[device]}</DialogTitle>
+          <DialogTitle>{m.exportDialog.title(deviceLabel(device))}</DialogTitle>
           <DialogDescription>
-            Renders at App Store resolution and bundles everything into a zip
-            (single images download directly).
+            {m.exportDialog.description}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">Format</Label>
+              <Label className="text-xs">{m.exportDialog.format}</Label>
               <Tabs value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
                 <TabsList className="h-8 p-0.5">
                   <TabsTrigger value="png" className="h-7 px-3 text-xs">PNG</TabsTrigger>
@@ -93,14 +94,14 @@ export function ExportDialog({
               </Tabs>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Scope</Label>
+              <Label className="text-xs">{m.exportDialog.scope}</Label>
               <Tabs value={scope} onValueChange={(v) => setScope(v as ExportScope)}>
                 <TabsList className="h-8 p-0.5">
                   <TabsTrigger value="deck" className="h-7 px-3 text-xs">
-                    All {slideCount} slides
+                    {m.exportDialog.allSlides(slideCount)}
                   </TabsTrigger>
                   <TabsTrigger value="current" className="h-7 px-3 text-xs">
-                    Current slide
+                    {m.exportDialog.currentSlide}
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -110,7 +111,7 @@ export function ExportDialog({
           {format === "jpg" && (
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">JPG quality</Label>
+                <Label className="text-xs">{m.exportDialog.jpgQuality}</Label>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
                   {Math.round(quality * 100)}%
                 </span>
@@ -123,13 +124,13 @@ export function ExportDialog({
                 value={Math.round(quality * 100)}
                 onChange={(e) => setQuality(Number(e.target.value) / 100)}
                 className="w-full"
-                aria-label="JPG quality"
+                aria-label={m.exportDialog.jpgQuality}
               />
             </div>
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-xs">Sizes</Label>
+            <Label className="text-xs">{m.exportDialog.sizes}</Label>
             <div className="grid grid-cols-2 gap-1.5">
               {allSizes.map((s) => {
                 const key = `${s.w}x${s.h}`;
@@ -155,7 +156,7 @@ export function ExportDialog({
 
           {locales.length > 1 && (
             <div className="space-y-1.5">
-              <Label className="text-xs">Locales</Label>
+              <Label className="text-xs">{m.exportDialog.locales}</Label>
               <div className="flex flex-wrap gap-1.5">
                 {locales.map((l) => (
                   <label
@@ -177,7 +178,7 @@ export function ExportDialog({
 
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground">
-            {units} image{units === 1 ? "" : "s"}
+            {m.exportDialog.imageCount(units)}
           </span>
           <Button
             size="sm"
@@ -187,7 +188,7 @@ export function ExportDialog({
               onExport({ format, quality, sizes, locales: chosenLocales, scope });
             }}
           >
-            <Download className="h-4 w-4" /> Export
+            <Download className="h-4 w-4" /> {m.common.export}
           </Button>
         </div>
       </DialogContent>
