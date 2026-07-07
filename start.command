@@ -1,18 +1,25 @@
 #!/bin/bash
 # Screenshot Studio launcher.
 # Double-click this file in Finder to start the editor, or run it from a terminal.
-# It installs dependencies on first run, starts the dev server, and opens the browser.
+#
+# Runs the PRODUCTION server by default (fast, low memory — right for daily use).
+# The dev server (hot reload, but heavy and it grows in memory over long
+# sessions) is only for working on the editor's code:
+#
+#   ./start.command       # production (recommended)
+#   ./start.command dev   # development with hot reload
 
 set -e
 
 # Always work from the folder this script lives in, regardless of where it's launched from.
 cd "$(dirname "$0")"
 
+MODE="${1:-prod}"
 PORT=3000
 URL="http://localhost:$PORT"
 
-echo "Screenshot Studio"
-echo "-----------------"
+echo "Screenshot Studio ($MODE)"
+echo "-------------------------"
 
 # 1. Check Node.js is available.
 if ! command -v node >/dev/null 2>&1; then
@@ -43,5 +50,15 @@ echo "Запускаю сервер на $URL"
 echo "Чтобы остановить — нажмите Ctrl+C в этом окне."
 echo ""
 
-# 5. Start the dev server (stays running in the foreground).
-npm run dev
+if [ "$MODE" = "dev" ]; then
+  # 5a. Development server (hot reload; heavier on CPU/RAM).
+  npm run dev
+else
+  # 5b. Production: rebuild only when the app's source is newer than the last build.
+  #     (Project JSON, uploads and fonts are runtime data — they never need a rebuild.)
+  if [ ! -f .next/BUILD_ID ] || [ -n "$(find src package.json next.config.mjs tailwind.config.ts -newer .next/BUILD_ID -print -quit 2>/dev/null)" ]; then
+    echo "Собираю production-версию (1-2 минуты, только после изменений кода)…"
+    npm run build
+  fi
+  npm start
+fi

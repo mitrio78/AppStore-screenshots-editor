@@ -21,6 +21,8 @@ FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Standalone output is opt-in (see next.config.mjs) so local `next start` keeps working.
+ENV STANDALONE=1
 RUN npm run build
 
 FROM node:22-alpine AS runner

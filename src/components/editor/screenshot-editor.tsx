@@ -238,6 +238,8 @@ export function ScreenshotEditor() {
   const [activeSlideId, setActiveSlideId] = React.useState<string | null>(null);
   const [selectedElementId, setSelectedElementId] = React.useState<SelectableId | null>(null);
   const [exporting, setExporting] = React.useState<string | null>(null);
+  // Mounts the off-screen full-resolution export canvases (export-time only).
+  const [exportArmed, setExportArmed] = React.useState(false);
   const [exportOpen, setExportOpen] = React.useState(false);
   const [ready, setReady] = React.useState(false);
   const [exportLocaleOverride, setExportLocaleOverride] = React.useState<string | null>(null);
@@ -1019,6 +1021,24 @@ export function ScreenshotEditor() {
       return;
     }
 
+    // The off-screen full-resolution canvases are mounted ONLY while an export
+    // runs. Keeping N full-res slide trees (with blur/shadow filters and big
+    // images) permanently alive was a major browser memory/CPU drain — they
+    // re-rendered on every keystroke and drag. Arm, wait for refs, run, tear down.
+    setExportArmed(true);
+    try {
+      for (let i = 0; i < 30 && !slides.every((s) => exportRefs.current[s.id]); i++) {
+        await waitForPaint();
+      }
+      await runExport(opts, slides);
+    } finally {
+      setExportArmed(false);
+      setExportLocaleOverride(null);
+      setExporting(null);
+    }
+  }
+
+  async function runExport(opts: ExportOptions, slides: Slide[]) {
     // Load every family used on the exported deck up front — fonts that were
     // never painted (e.g. other locales) would otherwise export as fallbacks.
     const families = new Set<string>();
@@ -1370,38 +1390,42 @@ export function ScreenshotEditor() {
         </aside>
       </div>
 
-      {/* Off-screen export container — full-resolution canvases for html-to-image. */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: -99999,
-          top: 0,
-          pointerEvents: "none",
-        }}
-      >
-        {currentSlides.map((slide) => (
-          <div
-            key={slide.id}
-            ref={(el) => {
-              if (el) exportRefs.current[slide.id] = el;
-              else delete exportRefs.current[slide.id];
-            }}
-            style={{ width: cW, height: cH, position: "absolute", left: -99999, top: 0 }}
-          >
-            <SlideCanvas
-              slide={slide}
-              device={state.device}
-              orientation={state.orientation}
-              theme={theme}
-              locale={exportLocaleOverride ?? state.locale}
-              appName={state.appName}
-              appIcon={state.appIcon}
-              hideEmpty
-            />
-          </div>
-        ))}
-      </div>
+      {/* Off-screen export container — full-resolution canvases for html-to-image.
+          Mounted ONLY while exporting: keeping every slide alive at 1320×2868 with
+          blur/shadow filters ate hundreds of MB and re-rendered on every edit. */}
+      {exportArmed && (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: -99999,
+            top: 0,
+            pointerEvents: "none",
+          }}
+        >
+          {currentSlides.map((slide) => (
+            <div
+              key={slide.id}
+              ref={(el) => {
+                if (el) exportRefs.current[slide.id] = el;
+                else delete exportRefs.current[slide.id];
+              }}
+              style={{ width: cW, height: cH, position: "absolute", left: -99999, top: 0 }}
+            >
+              <SlideCanvas
+                slide={slide}
+                device={state.device}
+                orientation={state.orientation}
+                theme={theme}
+                locale={exportLocaleOverride ?? state.locale}
+                appName={state.appName}
+                appIcon={state.appIcon}
+                hideEmpty
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

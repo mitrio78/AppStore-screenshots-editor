@@ -3,10 +3,15 @@ setlocal
 
 rem Screenshot Studio launcher for Windows.
 rem Double-click this file in File Explorer to start the editor.
-rem It installs dependencies on first run, starts the dev server, and opens the browser.
+rem Runs the PRODUCTION server by default (fast, low memory - right for daily
+rem use). Pass "dev" for the development server with hot reload:
+rem   start.cmd       - production (recommended)
+rem   start.cmd dev   - development
 
 cd /d "%~dp0"
 
+set "MODE=%~1"
+if "%MODE%"=="" set "MODE=prod"
 set "PORT=3000"
 set "URL=http://localhost:%PORT%"
 
@@ -49,4 +54,20 @@ echo Starting server at %URL%
 echo Press Ctrl+C in this window to stop it.
 echo.
 
-call npm run dev
+if "%MODE%"=="dev" (
+  call npm run dev
+) else (
+  rem Rebuild only when there is no production build yet. After pulling code
+  rem changes, delete the .next folder (or run "npm run build") to refresh.
+  if not exist ".next\BUILD_ID" (
+    echo Building the production bundle, this takes a minute or two...
+    call npm run build
+    if errorlevel 1 (
+      echo.
+      echo npm run build failed.
+      pause
+      exit /b 1
+    )
+  )
+  call npm start
+)

@@ -165,10 +165,16 @@ export function SlideCanvas({
   const { cW, cH } = getCanvas(device, orientation);
   // Active center guides while dragging (editable canvas only).
   const [guides, setGuides] = React.useState<SnapGuides>({});
-  const handleGuides = React.useCallback(
-    (g: SnapGuides | null) => setGuides(g || {}),
-    [],
-  );
+  // onDrag fires per mousemove — bail out unless the guide values actually
+  // changed, otherwise every mouse move re-renders the whole canvas tree.
+  const handleGuides = React.useCallback((g: SnapGuides | null) => {
+    setGuides((prev) => {
+      const x = g?.x;
+      const y = g?.y;
+      if (prev.x === x && prev.y === y) return prev;
+      return { x, y };
+    });
+  }, []);
   const screenshot = resolveScreenshot(slide.screenshot, locale);
   const screenshotSecondary = resolveScreenshot(slide.screenshotSecondary, locale);
   const { Comp: Frame } = getFrameForDevice(device, orientation);

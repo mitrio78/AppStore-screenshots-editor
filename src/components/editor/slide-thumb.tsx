@@ -28,7 +28,23 @@ type Props = {
 // Thumb tile target width (pixels). Height is derived from device aspect.
 const THUMB_W = 60;
 
-export function SlideThumb({
+// Memoized: each thumb renders a full SlideCanvas tree, and without memo every
+// keystroke/drag on the active slide re-rendered every thumbnail in the deck.
+// Callback props are recreated by the parent each render but close over stable
+// handlers + this slide's data, so the comparator only checks the data props.
+export const SlideThumb = React.memo(SlideThumbBase, (a, b) =>
+  a.slide === b.slide &&
+  a.index === b.index &&
+  a.active === b.active &&
+  a.device === b.device &&
+  a.orientation === b.orientation &&
+  a.theme === b.theme &&
+  a.locale === b.locale &&
+  a.appName === b.appName &&
+  a.appIcon === b.appIcon,
+);
+
+function SlideThumbBase({
   slide,
   index,
   active,
