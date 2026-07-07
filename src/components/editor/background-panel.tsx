@@ -132,7 +132,15 @@ export function BackgroundPanel({
       )}
 
       {background?.type === "gradient" && (
-        <GradientControls bg={background} onChange={onChange} />
+        <GradientControls
+          bg={background}
+          device={device}
+          orientation={orientation}
+          slideIndex={slideIndex}
+          slideCount={slideCount}
+          onChange={onChange}
+          onSpreadPanorama={onSpreadPanorama}
+        />
       )}
 
       {background?.type === "image" && (
@@ -152,10 +160,20 @@ export function BackgroundPanel({
 
 function GradientControls({
   bg,
+  device,
+  orientation,
+  slideIndex,
+  slideCount,
   onChange,
+  onSpreadPanorama,
 }: {
   bg: Extract<Background, { type: "gradient" }>;
+  device: Device;
+  orientation: Orientation;
+  slideIndex: number;
+  slideCount: number;
   onChange: (bg: Background) => void;
+  onSpreadPanorama: (count: number) => void;
 }) {
   function patchStop(i: number, patch: Partial<GradientStop>) {
     const stops = bg.stops.map((s, idx) => (idx === i ? { ...s, ...patch } : s));
@@ -256,6 +274,103 @@ function GradientControls({
           <Plus className="h-3 w-3" /> Add stop
         </Button>
       </div>
+
+      {bg.span && bg.span > 1 && (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-[11px] text-muted-foreground">Horizontal offset</Label>
+            <span className="text-[10px] tabular-nums text-muted-foreground">
+              {Math.round((bg.offsetX ?? 0) * 100)}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={Math.round((bg.offsetX ?? 0) * 100)}
+            onChange={(e) => onChange({ ...bg, offsetX: Number(e.target.value) / 100 })}
+            className="w-full"
+            aria-label="Gradient panorama offset"
+          />
+        </div>
+      )}
+
+      <SpreadAcrossDeck
+        kind="gradient"
+        device={device}
+        orientation={orientation}
+        slideIndex={slideIndex}
+        slideCount={slideCount}
+        onSpread={onSpreadPanorama}
+      />
+    </div>
+  );
+}
+
+// Shared "spread this background as a panorama over N slides" control, used by
+// both the gradient and image background panels.
+function SpreadAcrossDeck({
+  kind,
+  device,
+  orientation,
+  slideIndex,
+  slideCount,
+  onSpread,
+}: {
+  kind: "image" | "gradient";
+  device: Device;
+  orientation: Orientation;
+  slideIndex: number;
+  slideCount: number;
+  onSpread: (count: number) => void;
+}) {
+  const maxSpread = Math.max(0, slideCount - Math.max(slideIndex, 0));
+  const [spreadCount, setSpreadCount] = React.useState(Math.max(2, maxSpread));
+  React.useEffect(() => {
+    setSpreadCount((c) => Math.max(2, Math.min(c, Math.max(2, maxSpread))));
+  }, [maxSpread]);
+  const { cW, cH } = getCanvasSize(device, orientation);
+
+  return (
+    <div className="space-y-1.5 rounded border border-dashed p-2">
+      <Label className="text-[11px] font-medium">Panorama across deck</Label>
+      {maxSpread >= 2 ? (
+        <>
+          <div className="flex items-center gap-1.5">
+            <NumberField
+              min={2}
+              max={maxSpread}
+              step={1}
+              className="h-8 w-16 text-xs"
+              value={spreadCount}
+              onCommit={setSpreadCount}
+              ariaLabel="Panorama slide count"
+            />
+            <span className="text-[11px] text-muted-foreground">slides</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto h-8 text-[11px]"
+              onClick={() => onSpread(spreadCount)}
+              title={`Spread this background across slides ${slideIndex + 1}–${slideIndex + spreadCount}`}
+            >
+              <GalleryHorizontal className="h-3.5 w-3.5" /> Spread
+            </Button>
+          </div>
+          <p className="text-[10px] leading-snug text-muted-foreground">
+            Applies to slides {slideIndex + 1}–{slideIndex + spreadCount} with evenly stepped offsets.{" "}
+            {kind === "image"
+              ? `Seamless with an image around ${spreadCount * cW}×${cH}px.`
+              : "Use a horizontal angle (90°) for the clearest left-to-right pan."}
+          </p>
+        </>
+      ) : (
+        <p className="text-[10px] text-muted-foreground">
+          Needs at least one slide after this one — select an earlier slide to spread from.
+        </p>
+      )}
     </div>
   );
 }
@@ -277,14 +392,6 @@ function ImageControls({
   onChange: (bg: Background) => void;
   onSpreadPanorama: (count: number) => void;
 }) {
-  // Panorama spread: from the active slide to the end of the deck at most.
-  const maxSpread = Math.max(0, slideCount - Math.max(slideIndex, 0));
-  const [spreadCount, setSpreadCount] = React.useState(Math.max(2, maxSpread));
-  React.useEffect(() => {
-    setSpreadCount((c) => Math.max(2, Math.min(c, Math.max(2, maxSpread))));
-  }, [maxSpread]);
-  const { cW, cH } = getCanvasSize(device, orientation);
-
   return (
     <div className="space-y-2">
       <ScreenshotPicker
@@ -368,43 +475,14 @@ function ImageControls({
         </div>
       )}
       {!!bg.src && (
-        <div className="space-y-1.5 rounded border border-dashed p-2">
-          <Label className="text-[11px] font-medium">Panorama across deck</Label>
-          {maxSpread >= 2 ? (
-            <>
-              <div className="flex items-center gap-1.5">
-                <NumberField
-                  min={2}
-                  max={maxSpread}
-                  step={1}
-                  className="h-8 w-16 text-xs"
-                  value={spreadCount}
-                  onCommit={setSpreadCount}
-                  ariaLabel="Panorama slide count"
-                />
-                <span className="text-[11px] text-muted-foreground">slides</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto h-8 text-[11px]"
-                  onClick={() => onSpreadPanorama(spreadCount)}
-                  title={`Spread this background as one panorama over slides ${slideIndex + 1}–${slideIndex + spreadCount}`}
-                >
-                  <GalleryHorizontal className="h-3.5 w-3.5" /> Spread
-                </Button>
-              </div>
-              <p className="text-[10px] leading-snug text-muted-foreground">
-                Applies this image to slides {slideIndex + 1}–{slideIndex + spreadCount} with evenly
-                stepped offsets. Seamless with an image around {spreadCount * cW}×{cH}px.
-              </p>
-            </>
-          ) : (
-            <p className="text-[10px] text-muted-foreground">
-              Needs at least one slide after this one — select an earlier slide to spread from.
-            </p>
-          )}
-        </div>
+        <SpreadAcrossDeck
+          kind="image"
+          device={device}
+          orientation={orientation}
+          slideIndex={slideIndex}
+          slideCount={slideCount}
+          onSpread={onSpreadPanorama}
+        />
       )}
       <Input
         value={bg.src}

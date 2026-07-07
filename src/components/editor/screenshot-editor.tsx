@@ -753,15 +753,18 @@ export function ScreenshotEditor() {
     toast.success("Background applied to all slides");
   }, [activeSlide, setState]);
 
-  // Spread the active slide's image background as a panorama across `count`
-  // consecutive slides starting at the active one: same src on each, fit
-  // "panorama", offsetX evenly stepped 0 → 1 so the strip pans left-to-right.
+  // Spread the active slide's image OR gradient background as a panorama across
+  // `count` consecutive slides starting at the active one, with offsetX evenly
+  // stepped 0 → 1 so it pans left-to-right. Images use fit "panorama"; gradients
+  // set span so they stretch to span× slide width and each slide shows its slice.
   const spreadPanorama = React.useCallback(
     (count: number) => {
       if (!activeSlide) return;
       const bg = activeSlide.background;
-      if (!bg || bg.type !== "image" || !bg.src) {
-        toast.error("Set an image background first");
+      const isImage = bg?.type === "image" && !!bg.src;
+      const isGradient = bg?.type === "gradient";
+      if (!bg || (!isImage && !isGradient)) {
+        toast.error("Set an image or gradient background first");
         return;
       }
       let applied = 0;
@@ -773,15 +776,12 @@ export function ScreenshotEditor() {
         applied = n;
         const next = slides.map((s, i) => {
           if (i < start || i >= start + n) return s;
-          const j = i - start;
-          return {
-            ...s,
-            background: {
-              ...bg,
-              fit: "panorama" as const,
-              offsetX: Math.round((j / (n - 1)) * 1000) / 1000,
-            },
-          };
+          const offsetX = Math.round(((i - start) / (n - 1)) * 1000) / 1000;
+          const background =
+            bg.type === "image"
+              ? { ...bg, fit: "panorama" as const, offsetX }
+              : { ...bg, span: n, offsetX };
+          return { ...s, background };
         });
         return {
           ...prev,

@@ -48,7 +48,17 @@ export type GradientStop = { color: string; position: number }; // position 0..1
 export type Background =
   | { type: "theme" }                       // derive from the project theme (default)
   | { type: "solid"; color: string }
-  | { type: "gradient"; angle: number; stops: GradientStop[] }
+  | {
+      type: "gradient";
+      angle: number;
+      stops: GradientStop[];
+      // Panorama support: when span > 1 the gradient is stretched to span× the
+      // slide width and this slide shows its slice at offsetX (0 = left edge,
+      // 1 = right edge). Spreading across a deck = same gradient on every slide
+      // in the span with span = N and offsetX = i / (N - 1).
+      span?: number;
+      offsetX?: number;
+    }
   | {
       type: "image";
       src: string;                          // /screenshots/... | /backgrounds/... | data:

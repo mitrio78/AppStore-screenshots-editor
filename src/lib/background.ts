@@ -59,7 +59,22 @@ export function cssForBackground(
         .sort((s1, s2) => s1.position - s2.position)
         .map((s) => `${s.color} ${Math.round(s.position * 100)}%`)
         .join(", ");
-      return { root: { background: `linear-gradient(${b.angle}deg, ${stops})` }, isTheme: false };
+      const grad = `linear-gradient(${b.angle}deg, ${stops})`;
+      const span = b.span && b.span > 1 ? b.span : 1;
+      if (span > 1) {
+        // Stretch the gradient to span× the slide width and show this slide's
+        // contiguous slice — a continuous gradient panning across the deck.
+        return {
+          root: {
+            backgroundImage: grad,
+            backgroundSize: `${span * 100}% 100%`,
+            backgroundPosition: `${(b.offsetX ?? 0) * 100}% 50%`,
+            backgroundRepeat: "no-repeat",
+          },
+          isTheme: false,
+        };
+      }
+      return { root: { background: grad }, isTheme: false };
     }
     case "image": {
       const src = img(resolveScreenshot(b.src, locale));
