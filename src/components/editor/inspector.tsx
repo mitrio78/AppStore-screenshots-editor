@@ -31,9 +31,12 @@ type Props = {
   locale: string;
   selectedElementId: SelectableId | null;
   clipboardMode: ClipboardMode;
+  slideIndex: number;
+  slideCount: number;
   onChange: (patch: Partial<Slide>) => void;
   onThemeChange: (id: ThemeId) => void;
   onApplyBackgroundToDeck: () => void;
+  onSpreadPanorama: (count: number) => void;
   onClipboardModeChange: (mode: ClipboardMode) => void;
   onAddText: () => void;
   onAddImage: (file: File) => void;
@@ -52,9 +55,12 @@ export function Inspector({
   locale,
   selectedElementId,
   clipboardMode,
+  slideIndex,
+  slideCount,
   onChange,
   onThemeChange,
   onApplyBackgroundToDeck,
+  onSpreadPanorama,
   onClipboardModeChange,
   onAddText,
   onAddImage,
@@ -138,10 +144,15 @@ export function Inspector({
             background={slide.background}
             inverted={!!slide.inverted}
             themeId={themeId}
+            device={device}
+            orientation={orientation}
+            slideIndex={slideIndex}
+            slideCount={slideCount}
             onChange={(background) => onChange({ background })}
             onInvertedChange={(inverted) => onChange({ inverted: inverted || undefined })}
             onThemeChange={onThemeChange}
             onApplyToDeck={onApplyBackgroundToDeck}
+            onSpreadPanorama={onSpreadPanorama}
           />
         )}
 

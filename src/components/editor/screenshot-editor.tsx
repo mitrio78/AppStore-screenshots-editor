@@ -753,6 +753,46 @@ export function ScreenshotEditor() {
     toast.success("Background applied to all slides");
   }, [activeSlide, setState]);
 
+  // Spread the active slide's image background as a panorama across `count`
+  // consecutive slides starting at the active one: same src on each, fit
+  // "panorama", offsetX evenly stepped 0 → 1 so the strip pans left-to-right.
+  const spreadPanorama = React.useCallback(
+    (count: number) => {
+      if (!activeSlide) return;
+      const bg = activeSlide.background;
+      if (!bg || bg.type !== "image" || !bg.src) {
+        toast.error("Set an image background first");
+        return;
+      }
+      let applied = 0;
+      setState((prev) => {
+        const slides = prev.slidesByDevice[prev.device] || [];
+        const start = slides.findIndex((s) => s.id === activeSlide.id);
+        if (start === -1) return prev;
+        const n = Math.max(2, Math.min(count, slides.length - start));
+        applied = n;
+        const next = slides.map((s, i) => {
+          if (i < start || i >= start + n) return s;
+          const j = i - start;
+          return {
+            ...s,
+            background: {
+              ...bg,
+              fit: "panorama" as const,
+              offsetX: Math.round((j / (n - 1)) * 1000) / 1000,
+            },
+          };
+        });
+        return {
+          ...prev,
+          slidesByDevice: { ...prev.slidesByDevice, [prev.device]: next },
+        };
+      });
+      if (applied) toast.success(`Panorama spread across ${applied} slides`);
+    },
+    [activeSlide, setState],
+  );
+
   const applySlideTemplateToDeck = React.useCallback(() => {
     if (!activeSlide) return;
 
@@ -1306,9 +1346,12 @@ export function ScreenshotEditor() {
               locale={state.locale}
               selectedElementId={selectedElementId}
               clipboardMode={clipboardMode}
+              slideIndex={currentSlides.findIndex((s) => s.id === activeSlide.id)}
+              slideCount={currentSlides.length}
               onChange={(patch) => patchSlide(activeSlide.id, patch)}
               onThemeChange={(themeId) => setState((p) => ({ ...p, themeId }))}
               onApplyBackgroundToDeck={applyBackgroundToDeck}
+              onSpreadPanorama={spreadPanorama}
               onClipboardModeChange={setClipboardMode}
               onAddText={addTextElement}
               onAddImage={(file) => void addImageElement(file)}
