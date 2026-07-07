@@ -1,0 +1,4 @@
+interface:
+  display_name: "Screenshot Studio"
+  short_description: "Work with Screenshot Studio projects"
+  default_prompt: "Use $screenshot-studio to create or edit an App Store screenshot showcase."

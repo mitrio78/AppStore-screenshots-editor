@@ -131,3 +131,42 @@ npm run build
 
 The project does not currently include a dedicated test suite. Use the local
 editor and production build as the primary verification path.
+
+## Codex Skill
+
+This repository includes a reusable Codex skill for agents working with
+Screenshot Studio:
+
+```text
+skills/screenshot-studio
+```
+
+The skill teaches Codex the local project schema, user-data policy, common
+showcase workflows, and validation steps.
+
+To install it for local Codex use on macOS or Linux, run this from the repo
+root:
+
+```bash
+mkdir -p ~/.codex/skills
+ln -s "$(pwd)/skills/screenshot-studio" ~/.codex/skills/screenshot-studio
+```
+
+On Windows PowerShell, run this from the repo root:
+
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.codex\skills"
+New-Item -ItemType Junction `
+  -Path "$env:USERPROFILE\.codex\skills\screenshot-studio" `
+  -Target "$PWD\skills\screenshot-studio"
+```
+
+If junction creation is unavailable, copy the folder instead:
+
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.codex\skills"
+Copy-Item -Recurse -Force ".\skills\screenshot-studio" "$env:USERPROFILE\.codex\skills\"
+```
+
+Restart Codex or start a new thread after installing. You can then ask Codex to
+use `$screenshot-studio` when creating or editing showcase projects.
