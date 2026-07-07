@@ -29,7 +29,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-studio-demo.png" alt="Screenshot Studio Editor mit Slide-Liste, Canvas, Device-Mockup und Slide-Einstellungen" width="100%">
+  <strong>Helles Theme</strong><br>
+  <img src="docs/assets/screenshot-studio-light.png" alt="Screenshot Studio Editor im hellen Theme mit Slide-Liste, Canvas, Device-Mockup und Slide-Einstellungen" width="100%">
+</p>
+
+<p align="center">
+  <strong>Dunkles Theme</strong><br>
+  <img src="docs/assets/screenshot-studio-dark.png" alt="Screenshot Studio Editor im dunklen Theme mit Slide-Liste, Canvas, Device-Mockup und Slide-Einstellungen" width="100%">
 </p>
 
 ## Warum Screenshot Studio?

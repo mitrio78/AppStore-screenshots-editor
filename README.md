@@ -29,7 +29,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-studio-demo.png" alt="Screenshot Studio editor with slide thumbnails, canvas, device mockup, and slide settings" width="100%">
+  <strong>Light theme</strong><br>
+  <img src="docs/assets/screenshot-studio-light.png" alt="Screenshot Studio editor in light theme with slide thumbnails, canvas, device mockup, and slide settings" width="100%">
+</p>
+
+<p align="center">
+  <strong>Dark theme</strong><br>
+  <img src="docs/assets/screenshot-studio-dark.png" alt="Screenshot Studio editor in dark theme with slide thumbnails, canvas, device mockup, and slide settings" width="100%">
 </p>
 
 ## Why Screenshot Studio?

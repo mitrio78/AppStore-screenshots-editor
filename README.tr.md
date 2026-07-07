@@ -29,7 +29,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-studio-demo.png" alt="Slide listesi, canvas, cihaz mockup'ı ve slide ayarlarını gösteren Screenshot Studio editörü" width="100%">
+  <strong>Açık tema</strong><br>
+  <img src="docs/assets/screenshot-studio-light.png" alt="Açık temada slide listesi, canvas, cihaz mockup'ı ve slide ayarlarını gösteren Screenshot Studio editörü" width="100%">
+</p>
+
+<p align="center">
+  <strong>Koyu tema</strong><br>
+  <img src="docs/assets/screenshot-studio-dark.png" alt="Koyu temada slide listesi, canvas, cihaz mockup'ı ve slide ayarlarını gösteren Screenshot Studio editörü" width="100%">
 </p>
 
 ## Neden Screenshot Studio?

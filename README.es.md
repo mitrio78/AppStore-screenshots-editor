@@ -29,7 +29,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-studio-demo.png" alt="Editor Screenshot Studio con miniaturas, lienzo, mockup de dispositivo y ajustes del slide" width="100%">
+  <strong>Tema claro</strong><br>
+  <img src="docs/assets/screenshot-studio-light.png" alt="Editor Screenshot Studio en tema claro con miniaturas, lienzo, mockup de dispositivo y ajustes del slide" width="100%">
+</p>
+
+<p align="center">
+  <strong>Tema oscuro</strong><br>
+  <img src="docs/assets/screenshot-studio-dark.png" alt="Editor Screenshot Studio en tema oscuro con miniaturas, lienzo, mockup de dispositivo y ajustes del slide" width="100%">
 </p>
 
 ## Por qué Screenshot Studio

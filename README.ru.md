@@ -30,7 +30,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-studio-demo.png" alt="Редактор Screenshot Studio со списком слайдов, канвасом, мокапом устройства и настройками слайда" width="100%">
+  <strong>Светлая тема</strong><br>
+  <img src="docs/assets/screenshot-studio-light.png" alt="Редактор Screenshot Studio в светлой теме со списком слайдов, канвасом, мокапом устройства и настройками слайда" width="100%">
+</p>
+
+<p align="center">
+  <strong>Темная тема</strong><br>
+  <img src="docs/assets/screenshot-studio-dark.png" alt="Редактор Screenshot Studio в темной теме со списком слайдов, канвасом, мокапом устройства и настройками слайда" width="100%">
 </p>
 
 ## Зачем нужен Screenshot Studio?

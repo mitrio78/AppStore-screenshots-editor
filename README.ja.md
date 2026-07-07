@@ -29,7 +29,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-studio-demo.png" alt="スライド一覧、キャンバス、デバイスモックアップ、スライド設定を表示した Screenshot Studio エディター" width="100%">
+  <strong>ライトテーマ</strong><br>
+  <img src="docs/assets/screenshot-studio-light.png" alt="ライトテーマでスライド一覧、キャンバス、デバイスモックアップ、スライド設定を表示した Screenshot Studio エディター" width="100%">
+</p>
+
+<p align="center">
+  <strong>ダークテーマ</strong><br>
+  <img src="docs/assets/screenshot-studio-dark.png" alt="ダークテーマでスライド一覧、キャンバス、デバイスモックアップ、スライド設定を表示した Screenshot Studio エディター" width="100%">
 </p>
 
 ## Screenshot Studio とは

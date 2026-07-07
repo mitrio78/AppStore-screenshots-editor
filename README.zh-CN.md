@@ -28,7 +28,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-studio-demo.png" alt="Screenshot Studio 编辑器，包含幻灯片缩略图、画布、设备 mockup 和幻灯片设置" width="100%">
+  <strong>浅色主题</strong><br>
+  <img src="docs/assets/screenshot-studio-light.png" alt="浅色主题下的 Screenshot Studio 编辑器，包含幻灯片缩略图、画布、设备 mockup 和幻灯片设置" width="100%">
+</p>
+
+<p align="center">
+  <strong>深色主题</strong><br>
+  <img src="docs/assets/screenshot-studio-dark.png" alt="深色主题下的 Screenshot Studio 编辑器，包含幻灯片缩略图、画布、设备 mockup 和幻灯片设置" width="100%">
 </p>
 
 ## 为什么使用 Screenshot Studio?
