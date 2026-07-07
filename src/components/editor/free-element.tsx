@@ -70,6 +70,9 @@ export function EditableText({
         outline: "none",
         whiteSpace: multiline ? "pre-wrap" : "nowrap",
         cursor: editable ? "text" : "default",
+        // Text stays selectable for editing; the canvas root sets user-select:none.
+        userSelect: editable ? "text" : "none",
+        WebkitUserSelect: editable ? "text" : "none",
         ...style,
       }}
     />

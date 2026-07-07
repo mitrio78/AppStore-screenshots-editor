@@ -187,6 +187,7 @@ export function SlideCanvas({
     const tagline = slide.elements.find((e): e is TextElement => e.kind === "text");
     return (
       <div
+        className="slide-surface"
         style={{
           width: "100%",
           height: "100%",
@@ -355,6 +356,7 @@ export function SlideCanvas({
   return (
     <div
       onMouseDown={handleBackgroundMouseDown}
+      className="slide-surface"
       style={{
         width: "100%",
         height: "100%",

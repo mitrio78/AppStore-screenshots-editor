@@ -87,3 +87,16 @@
   border-radius: 2px;
 }
 
+/* Suppress the browser text/image selection highlight on the slide canvas
+   (screenshots, device frames) — dragging must never leave a grey selection
+   box over the screenshot. Editable text opts back in so it stays editable. */
+.slide-surface,
+.slide-surface * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+.slide-surface [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
