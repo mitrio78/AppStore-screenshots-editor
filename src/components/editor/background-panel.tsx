@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Plus, X } from "lucide-react";
+import { ArrowLeftRight, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -143,12 +143,34 @@ function GradientControls({
     onChange({ ...bg, stops });
   }
 
+  // Mirror the gradient: each stop's position → (1 - position), then re-sort.
+  // Flips which color sits at each end in one click.
+  function reverse() {
+    const stops = bg.stops
+      .map((s) => ({ color: s.color, position: Math.round((1 - s.position) * 1000) / 1000 }))
+      .sort((a, b) => a.position - b.position);
+    onChange({ ...bg, stops });
+  }
+
   return (
     <div className="space-y-2">
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <Label className="text-[11px] text-muted-foreground">Angle</Label>
-          <span className="text-[11px] tabular-nums text-muted-foreground">{bg.angle}°</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] tabular-nums text-muted-foreground">{bg.angle}°</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={reverse}
+              title="Invert gradient colors"
+              aria-label="Invert gradient colors"
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
         <input
           type="range"
