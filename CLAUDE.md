@@ -16,3 +16,7 @@ Quick facts:
 - Project file storage lives in `src/lib/server/projects.ts`
 - Browser/project autosave logic lives in `src/lib/storage.ts`
 - No dedicated test suite yet; use `npm run build` and browser verification
+- NEVER run `npm run build` (or `rm -rf .next`) while a server from this folder
+  is running — the live server ends up with a corrupted/partial `.next` and
+  every API route starts returning 404 (autosave breaks with "HTTP 404").
+  Stop servers first (`./stop.command` / `stop.cmd`), build, then restart.

@@ -49,17 +49,27 @@ Schriften gespeichert.
 
 ### macOS
 
-Doppelklicke `start.command` im Finder. Der Launcher installiert beim ersten Start die Abhängigkeiten,
-startet den lokalen Dev-Server und öffnet den Editor im Browser.
+Doppelklicke `start.command` im Finder. Beim ersten Start installiert der Launcher die Abhängigkeiten;
+danach baut und startet er den lokalen **Production**-Server (schnell und schlank) und öffnet den
+Editor im Browser. Ein erneuter Start ist unbedenklich: Er stoppt zuerst jede vorherige Instanz aus
+diesem Ordner, sodass sich Server nie auf neuen Ports anhäufen.
 
-Zum Stoppen des Servers drücke `Ctrl+C` im Terminalfenster von `start.command`.
+Zum Stoppen des Servers doppelklicke `stop.command` (oder drücke `Ctrl+C` im Terminalfenster, das
+`start.command` geöffnet hat).
+
+Für die Entwicklung mit Hot Reload führe `./start.command dev` in einem Terminal aus.
 
 ### Windows
 
-Doppelklicke `start.cmd` im File Explorer. Der Launcher installiert beim ersten Start die Abhängigkeiten,
-startet den lokalen Dev-Server und öffnet den Editor im Standardbrowser.
+Doppelklicke `start.cmd` im File Explorer. Beim ersten Start installiert der Launcher die
+Abhängigkeiten; danach baut und startet er den lokalen **Production**-Server (schnell und schlank)
+und öffnet den Editor im Standardbrowser. Ein erneuter Start stoppt zuerst jede vorherige Instanz
+aus diesem Ordner, sodass sich Server nie anhäufen.
 
-Zum Stoppen drücke `Ctrl+C` im Fenster von `start.cmd`.
+Zum Stoppen des Servers doppelklicke `stop.cmd` (oder drücke `Ctrl+C` im Befehlsfenster, das
+`start.cmd` geöffnet hat).
+
+Für die Entwicklung mit Hot Reload führe `start.cmd dev` aus.
 
 ### Manueller Start
 

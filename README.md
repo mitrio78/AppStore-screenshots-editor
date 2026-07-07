@@ -49,19 +49,27 @@ JSON plus local screenshots, backgrounds, and fonts.
 
 ### macOS Quick Start
 
-Double-click `start.command` in Finder. The launcher installs dependencies on
-first run, starts the local dev server, and opens the editor in your browser.
+Double-click `start.command` in Finder. On first run it installs dependencies;
+then it builds and starts the local **production** server (fast and light) and
+opens the editor in your browser. Re-launching is safe: it first stops any
+previous instance from this folder, so servers never pile up on new ports.
 
-To stop the server, press `Ctrl+C` in the terminal window opened by
-`start.command`.
+To stop the server, double-click `stop.command` (or press `Ctrl+C` in the
+terminal window opened by `start.command`).
+
+For development with hot reload, run `./start.command dev` from a terminal.
 
 ### Windows Quick Start
 
-Double-click `start.cmd` in File Explorer. The launcher installs dependencies on
-first run, starts the local dev server, and opens the editor in your default
-browser.
+Double-click `start.cmd` in File Explorer. On first run it installs
+dependencies; then it builds and starts the local **production** server (fast
+and light) and opens the editor in your default browser. Re-launching first
+stops any previous instance from this folder, so servers never pile up.
 
-To stop the server, press `Ctrl+C` in the command window opened by `start.cmd`.
+To stop the server, double-click `stop.cmd` (or press `Ctrl+C` in the command
+window opened by `start.cmd`).
+
+For development with hot reload, run `start.cmd dev`.
 
 ### Manual Start
 

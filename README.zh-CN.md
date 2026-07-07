@@ -46,15 +46,19 @@ Screenshot Studio 是一个本地 Web 编辑器，适合需要可重复、可编
 
 ### macOS
 
-在 Finder 中双击 `start.command`。首次运行时会安装依赖，启动本地 dev server，并在浏览器中打开编辑器。
+在 Finder 中双击 `start.command`。首次运行时会安装依赖，然后构建并启动本地 **production** 服务器（快速且轻量），并在浏览器中打开编辑器。重新启动是安全的：它会先停止该文件夹中之前运行的实例，因此服务器不会在新端口上不断堆积。
 
-要停止服务器，请在 `start.command` 打开的终端窗口中按 `Ctrl+C`。
+要停止服务器，请双击 `stop.command`（或在 `start.command` 打开的终端窗口中按 `Ctrl+C`）。
+
+如需使用热重载进行开发，请在终端中运行 `./start.command dev`。
 
 ### Windows
 
-在 File Explorer 中双击 `start.cmd`。首次运行时会安装依赖，启动本地 dev server，并在默认浏览器中打开编辑器。
+在 File Explorer 中双击 `start.cmd`。首次运行时会安装依赖，然后构建并启动本地 **production** 服务器（快速且轻量），并在默认浏览器中打开编辑器。重新启动时会先停止该文件夹中之前运行的实例，因此服务器不会不断堆积。
 
-要停止服务器，请在 `start.cmd` 打开的命令窗口中按 `Ctrl+C`。
+要停止服务器，请双击 `stop.cmd`（或在 `start.cmd` 打开的命令窗口中按 `Ctrl+C`）。
+
+如需使用热重载进行开发，请运行 `start.cmd dev`。
 
 ### 手动启动
 

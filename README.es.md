@@ -48,17 +48,27 @@ React y Tailwind CSS, y guarda los proyectos como JSON junto con screenshots, fo
 
 ### macOS
 
-Haz doble clic en `start.command` en Finder. El lanzador instala dependencias en el primer uso,
-inicia el servidor local y abre el editor en el navegador.
+Haz doble clic en `start.command` en Finder. En el primer uso instala las dependencias; luego
+compila e inicia el servidor local de **producción** (rápido y ligero) y abre el editor en tu
+navegador. Relanzarlo es seguro: primero detiene cualquier instancia anterior de esta carpeta, así
+los servidores nunca se acumulan en puertos nuevos.
 
-Para detener el servidor, pulsa `Ctrl+C` en la terminal abierta por `start.command`.
+Para detener el servidor, haz doble clic en `stop.command` (o pulsa `Ctrl+C` en la ventana de
+terminal abierta por `start.command`).
+
+Para desarrollo con hot reload, ejecuta `./start.command dev` desde una terminal.
 
 ### Windows
 
-Haz doble clic en `start.cmd` en File Explorer. El lanzador instala dependencias en el primer uso,
-inicia el servidor local y abre el editor en el navegador predeterminado.
+Haz doble clic en `start.cmd` en File Explorer. En el primer uso instala las dependencias; luego
+compila e inicia el servidor local de **producción** (rápido y ligero) y abre el editor en tu
+navegador predeterminado. Relanzarlo detiene primero cualquier instancia anterior de esta carpeta,
+así los servidores nunca se acumulan.
 
-Para detenerlo, pulsa `Ctrl+C` en la ventana abierta por `start.cmd`.
+Para detener el servidor, haz doble clic en `stop.cmd` (o pulsa `Ctrl+C` en la ventana de comandos
+abierta por `start.cmd`).
+
+Para desarrollo con hot reload, ejecuta `start.cmd dev`.
 
 ### Inicio manual
 

@@ -48,15 +48,19 @@ Projeler düz JSON ve yerel screenshot, arka plan ve font dosyalarıyla saklanı
 
 ### macOS
 
-Finder'da `start.command` dosyasına çift tıklayın. İlk çalıştırmada bağımlılıkları kurar, yerel dev server'ı başlatır ve editörü tarayıcıda açar.
+Finder'da `start.command` dosyasına çift tıklayın. İlk çalıştırmada bağımlılıkları kurar; ardından yerel **production** server'ı (hızlı ve hafif) derleyip başlatır ve editörü tarayıcınızda açar. Yeniden başlatmak güvenlidir: önce bu klasörden başlatılmış önceki bir örneği durdurur, böylece server'lar yeni portlarda asla birikmez.
 
-Server'ı durdurmak için `start.command` tarafından açılan terminalde `Ctrl+C` basın.
+Server'ı durdurmak için `stop.command` dosyasına çift tıklayın (veya `start.command` tarafından açılan terminal penceresinde `Ctrl+C` basın).
+
+Hot reload ile geliştirme için bir terminalden `./start.command dev` çalıştırın.
 
 ### Windows
 
-File Explorer'da `start.cmd` dosyasına çift tıklayın. İlk çalıştırmada bağımlılıkları kurar, yerel dev server'ı başlatır ve varsayılan tarayıcıda açar.
+File Explorer'da `start.cmd` dosyasına çift tıklayın. İlk çalıştırmada bağımlılıkları kurar; ardından yerel **production** server'ı (hızlı ve hafif) derleyip başlatır ve editörü varsayılan tarayıcınızda açar. Yeniden başlatma önce bu klasörden başlatılmış önceki bir örneği durdurur, böylece server'lar asla birikmez.
 
-Durdurmak için `start.cmd` penceresinde `Ctrl+C` basın.
+Server'ı durdurmak için `stop.cmd` dosyasına çift tıklayın (veya `start.cmd` tarafından açılan komut penceresinde `Ctrl+C` basın).
+
+Hot reload ile geliştirme için `start.cmd dev` çalıştırın.
 
 ### Manuel başlatma
 

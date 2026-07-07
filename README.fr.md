@@ -48,17 +48,26 @@ en JSON avec des captures, fonds et polices locaux.
 
 ### macOS
 
-Double-cliquez sur `start.command` dans Finder. Le lanceur installe les dépendances au premier lancement,
-démarre le serveur local et ouvre l'éditeur dans le navigateur.
+Double-cliquez sur `start.command` dans Finder. Au premier lancement, il installe les dépendances, puis il construit et
+démarre le serveur local de **production** (rapide et léger) et ouvre l'éditeur dans votre navigateur. Relancer est sûr:
+il arrête d'abord toute instance précédente lancée depuis ce dossier, afin que les serveurs ne s'accumulent jamais sur
+de nouveaux ports.
 
-Pour arrêter le serveur, appuyez sur `Ctrl+C` dans le terminal ouvert par `start.command`.
+Pour arrêter le serveur, double-cliquez sur `stop.command` (ou appuyez sur `Ctrl+C` dans la fenêtre de terminal ouverte
+par `start.command`).
+
+Pour le développement avec rechargement à chaud, exécutez `./start.command dev` depuis un terminal.
 
 ### Windows
 
-Double-cliquez sur `start.cmd` dans File Explorer. Le lanceur installe les dépendances au premier lancement,
-démarre le serveur local et ouvre l'éditeur dans le navigateur par défaut.
+Double-cliquez sur `start.cmd` dans File Explorer. Au premier lancement, il installe les dépendances, puis il construit et
+démarre le serveur local de **production** (rapide et léger) et ouvre l'éditeur dans votre navigateur par défaut. Relancer
+arrête d'abord toute instance précédente lancée depuis ce dossier, afin que les serveurs ne s'accumulent jamais.
 
-Pour l'arrêter, appuyez sur `Ctrl+C` dans la fenêtre ouverte par `start.cmd`.
+Pour arrêter le serveur, double-cliquez sur `stop.cmd` (ou appuyez sur `Ctrl+C` dans la fenêtre de commande ouverte par
+`start.cmd`).
+
+Pour le développement avec rechargement à chaud, exécutez `start.cmd dev`.
 
 ### Démarrage manuel
 
