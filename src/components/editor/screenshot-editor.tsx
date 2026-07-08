@@ -1115,13 +1115,14 @@ export function ScreenshotEditor() {
     }
     await preloadImages(Array.from(needed));
 
-    // Warn (don't abort) if a required screenshot genuinely can't be fetched —
-    // otherwise a missing file exports as a silent black screen.
+    // Loudly flag screenshots that genuinely can't be fetched — a missing file
+    // exports as a black mockup screen, which users read as "export is broken".
     const missing = Array.from(needed).filter((p) => didFail(p));
     if (missing.length) {
-      toast.warning(m.editor.imagesCouldNotLoad(missing.length), {
+      console.error("Export: images could not load:", missing);
+      toast.error(m.editor.imagesCouldNotLoad(missing.length), {
         description: missing.slice(0, 4).join("\n"),
-        duration: 9000,
+        duration: 15000,
       });
     }
 

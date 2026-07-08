@@ -25,11 +25,19 @@ export async function preloadImages(paths: string[]): Promise<void> {
   await Promise.all(
     paths
       .filter(Boolean)
-      .filter((p) => !cache.has(p) && !failed.has(p))
+      // Retry previously-failed paths on every preload: a transient outage
+      // (e.g. the dev server restarting) must not poison the session — a
+      // permanent `failed` skip once exported mockups as blank screens even
+      // though the files were back. Only cached successes are skipped.
+      .filter((p) => !cache.has(p))
       .map(async (p) => {
         const data = await fetchAsDataUrl(p);
-        if (data) cache.set(p, data);
-        else failed.add(p);
+        if (data) {
+          cache.set(p, data);
+          failed.delete(p);
+        } else {
+          failed.add(p);
+        }
       }),
   );
 }
