@@ -364,6 +364,8 @@ const en = {
     dropToUpload: "Drop to upload",
     imageFailedToLoad: "Image failed to load",
     clearScreenshot: "Clear screenshot",
+    localizedScreenshot: (locale: string) => `Screenshot for ${locale.toUpperCase()} only`,
+    sharedScreenshot: (locale: string) => `Shared screenshot — pick or drop one to use it for ${locale.toUpperCase()} only`,
     imageNotFound: (path: string) => `Image not found at ${path}`,
   },
   exportDialog: {
@@ -729,6 +731,8 @@ const ru: Messages = {
     dropToUpload: "Отпустите для загрузки",
     imageFailedToLoad: "Изображение не загрузилось",
     clearScreenshot: "Очистить скриншот",
+    localizedScreenshot: (locale) => `Свой скриншот для ${locale.toUpperCase()}`,
+    sharedScreenshot: (locale) => `Общий скриншот — загрузите файл, чтобы задать отдельный для ${locale.toUpperCase()}`,
     imageNotFound: (path) => `Изображение не найдено: ${path}`,
   },
   exportDialog: {
@@ -1089,6 +1093,8 @@ const ja: Messages = {
     dropToUpload: "ドロップしてアップロード",
     imageFailedToLoad: "画像の読み込みに失敗しました",
     clearScreenshot: "スクリーンショットをクリア",
+    localizedScreenshot: (locale) => `${locale.toUpperCase()} 専用のスクリーンショット`,
+    sharedScreenshot: (locale) => `共通のスクリーンショット — ドロップすると ${locale.toUpperCase()} 専用になります`,
     imageNotFound: (path) => `画像が見つかりません: ${path}`,
   },
   exportDialog: {
@@ -1449,6 +1455,8 @@ const de: Messages = {
     dropToUpload: "Zum Hochladen ablegen",
     imageFailedToLoad: "Bild konnte nicht geladen werden",
     clearScreenshot: "Screenshot entfernen",
+    localizedScreenshot: (locale) => `Eigener Screenshot nur für ${locale.toUpperCase()}`,
+    sharedScreenshot: (locale) => `Gemeinsamer Screenshot — Datei ablegen, um einen nur für ${locale.toUpperCase()} zu setzen`,
     imageNotFound: (path) => `Bild nicht gefunden unter ${path}`,
   },
   exportDialog: {
@@ -1809,6 +1817,8 @@ const es: Messages = {
     dropToUpload: "Suelta para subir",
     imageFailedToLoad: "No se pudo cargar la imagen",
     clearScreenshot: "Borrar captura",
+    localizedScreenshot: (locale) => `Captura solo para ${locale.toUpperCase()}`,
+    sharedScreenshot: (locale) => `Captura compartida — suelta una para usarla solo en ${locale.toUpperCase()}`,
     imageNotFound: (path) => `No se encontró la imagen en ${path}`,
   },
   exportDialog: {
@@ -2171,6 +2181,8 @@ const tr: Messages = {
     dropToUpload: "Yüklemek için bırakın",
     imageFailedToLoad: "Görsel yüklenemedi",
     clearScreenshot: "Ekran görüntüsünü temizle",
+    localizedScreenshot: (locale) => `${locale.toUpperCase()} için özel ekran görüntüsü`,
+    sharedScreenshot: (locale) => `Ortak ekran görüntüsü — yalnızca ${locale.toUpperCase()} için ayarlamak üzere bir dosya bırakın`,
     imageNotFound: (path) => `Görsel bulunamadı: ${path}`,
   },
   exportDialog: {
@@ -2531,6 +2543,8 @@ const fr: Messages = {
     dropToUpload: "Déposer pour importer",
     imageFailedToLoad: "Échec du chargement de l'image",
     clearScreenshot: "Effacer la capture d'écran",
+    localizedScreenshot: (locale) => `Capture propre à ${locale.toUpperCase()}`,
+    sharedScreenshot: (locale) => `Capture partagée — déposez-en une pour l’utiliser uniquement en ${locale.toUpperCase()}`,
     imageNotFound: (path) => `Image introuvable : ${path}`,
   },
   exportDialog: {
@@ -2893,6 +2907,8 @@ const zhCN: Messages = {
     dropToUpload: "拖放以上传",
     imageFailedToLoad: "图片加载失败",
     clearScreenshot: "清除截图",
+    localizedScreenshot: (locale) => `仅用于 ${locale.toUpperCase()} 的截图`,
+    sharedScreenshot: (locale) => `共用截图 — 拖入文件即可仅为 ${locale.toUpperCase()} 设置`,
     imageNotFound: (path) => `未找到图片：${path}`,
   },
   exportDialog: {

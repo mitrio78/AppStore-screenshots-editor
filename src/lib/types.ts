@@ -118,8 +118,13 @@ export type FreeElement = TextElement | ImageElement;
 export type Slide = {
   id: string;
   layout: SlideLayout;
-  screenshot: string;           // path under /screenshots/ — may contain {locale}
+  screenshot: string;           // shared path under /screenshots/ — may contain {locale}
   screenshotSecondary?: string; // for two-devices layout — may contain {locale}
+  // Per-locale screenshot overrides (mirrors how localized text works): a
+  // locale listed here shows its own file; absent locales fall back to the
+  // shared `screenshot`/`screenshotSecondary` path.
+  screenshotByLocale?: Partial<Record<string, string>>;
+  screenshotSecondaryByLocale?: Partial<Record<string, string>>;
   inverted?: boolean;           // dark variant of the theme background
   background?: Background;      // absent → { type: "theme" }
   deviceShadow?: ShadowSpec;    // absent → frame's built-in default shadow

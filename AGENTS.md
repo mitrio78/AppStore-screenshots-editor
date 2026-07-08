@@ -86,6 +86,8 @@ Canvas sizes in portrait:
   "layout": "device-bottom",
   "screenshot": "/screenshots/myapp/{locale}/home.png",
   "screenshotSecondary": "",
+  "screenshotByLocale": { "ru": "/screenshots/uploaded/abc123.png" },
+  "screenshotSecondaryByLocale": {},
   "inverted": false,
   "background": { "type": "theme" },
   "deviceShadow": {
@@ -123,6 +125,12 @@ Layouts:
 
 Screenshot paths may include `{locale}`, which is replaced at render/export
 time. Missing localized text falls back to English.
+
+`screenshotByLocale` / `screenshotSecondaryByLocale` are optional per-locale
+overrides (same idea as localized text): a locale listed there shows its own
+file, all other locales fall back to the shared `screenshot` path. In the
+editor, editing while the primary locale (`locales[0]`) is active writes the
+shared path; editing in any other locale writes only that locale's override.
 
 ## Text Element
 

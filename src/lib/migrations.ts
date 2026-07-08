@@ -163,6 +163,8 @@ function migrateSlide(
     elements: [...(raw.elements || []), ...migratedElements],
   };
   if (raw.screenshotSecondary !== undefined) slide.screenshotSecondary = raw.screenshotSecondary;
+  if (raw.screenshotByLocale) slide.screenshotByLocale = raw.screenshotByLocale;
+  if (raw.screenshotSecondaryByLocale) slide.screenshotSecondaryByLocale = raw.screenshotSecondaryByLocale;
   if (raw.inverted) slide.inverted = raw.inverted;
   if (raw.background) slide.background = raw.background;
   if (raw.deviceShadow) slide.deviceShadow = raw.deviceShadow;

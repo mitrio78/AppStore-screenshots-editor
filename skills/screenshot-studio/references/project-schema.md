@@ -55,6 +55,8 @@ All transforms are stored in canvas pixels for the active device.
   "layout": "device-bottom",
   "screenshot": "/screenshots/myapp/{locale}/home.png",
   "screenshotSecondary": "",
+  "screenshotByLocale": { "ru": "/screenshots/uploaded/abc123.png" },
+  "screenshotSecondaryByLocale": {},
   "inverted": false,
   "background": { "type": "theme" },
   "deviceShadow": {
@@ -91,6 +93,12 @@ Layouts:
 - `feature-graphic`
 
 `screenshotSecondary` is only used by `two-devices`.
+
+`screenshotByLocale` / `screenshotSecondaryByLocale` are optional per-locale
+overrides (same idea as localized text): a locale listed there shows its own
+file, all other locales fall back to the shared `screenshot` path. In the
+editor, editing while the primary locale (`locales[0]`) is active writes the
+shared path; editing in any other locale writes only that locale's override.
 
 `frameColor` is optional. When absent, the device frame uses its built-in
 default look.

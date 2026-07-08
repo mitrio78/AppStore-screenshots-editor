@@ -12,7 +12,7 @@ import {
 } from "@/lib/layout-rects";
 import { img } from "@/lib/image-cache";
 import { useI18n } from "@/lib/i18n";
-import { pickText, resolveScreenshot } from "@/lib/locale";
+import { pickScreenshot, pickText } from "@/lib/locale";
 import type {
   Device,
   DeviceElementId,
@@ -177,8 +177,12 @@ export function SlideCanvas({
       return { x, y };
     });
   }, []);
-  const screenshot = resolveScreenshot(slide.screenshot, locale);
-  const screenshotSecondary = resolveScreenshot(slide.screenshotSecondary, locale);
+  const screenshot = pickScreenshot(slide.screenshot, slide.screenshotByLocale, locale);
+  const screenshotSecondary = pickScreenshot(
+    slide.screenshotSecondary,
+    slide.screenshotSecondaryByLocale,
+    locale,
+  );
   const { Comp: Frame } = getFrameForDevice(device, orientation);
   const inverted = !!slide.inverted;
   const bg = cssForBackground(slide.background, theme, inverted, locale);

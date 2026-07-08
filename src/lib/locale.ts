@@ -51,6 +51,17 @@ export function resolveScreenshot(path: string | undefined, locale: string): str
   return path.replace(/\{locale\}/g, locale);
 }
 
+// Resolve the screenshot a locale should show: its per-locale override first,
+// then the shared base path; `{locale}` placeholders are substituted either way.
+export function pickScreenshot(
+  base: string | undefined,
+  byLocale: Partial<Record<string, string>> | undefined,
+  locale: string,
+): string {
+  const override = byLocale?.[locale];
+  return resolveScreenshot(override || base, locale);
+}
+
 // Convert legacy `string` headline/label fields to the per-locale shape. Safe
 // to call on already-migrated data.
 export function coerceLocalized(value: unknown): LocalizedText {

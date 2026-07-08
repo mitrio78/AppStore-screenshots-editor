@@ -359,6 +359,8 @@ export function ScreenshotEditor() {
     for (const s of allSlides) {
       addLocalized(s.screenshot);
       addLocalized(s.screenshotSecondary);
+      for (const p of Object.values(s.screenshotByLocale || {})) addLocalized(p);
+      for (const p of Object.values(s.screenshotSecondaryByLocale || {})) addLocalized(p);
       for (const p of backgroundAssetPaths(s, state.locales)) paths.add(p);
       for (const el of s.elements) {
         if (el.kind === "image") addLocalized(el.src);
@@ -734,6 +736,34 @@ export function ScreenshotEditor() {
     [patchSlide, state.device, state.orientation],
   );
 
+  // Set a slide's screenshot the way localized text works: editing while the
+  // PRIMARY locale (locales[0]) is active writes the shared path every locale
+  // falls back to; any other locale writes/clears only that locale's override.
+  const setSlideScreenshot = React.useCallback(
+    (slide: Slide, slot: DeviceElementId, path: string) => {
+      setState((prev) => {
+        const primary = prev.locales[0];
+        const baseKey = slot === "device" ? "screenshot" : "screenshotSecondary";
+        const mapKey = slot === "device" ? "screenshotByLocale" : "screenshotSecondaryByLocale";
+        return {
+          ...prev,
+          slidesByDevice: {
+            ...prev.slidesByDevice,
+            [prev.device]: (prev.slidesByDevice[prev.device] || []).map((s) => {
+              if (s.id !== slide.id) return s;
+              if (prev.locale === primary) return { ...s, [baseKey]: path };
+              const nextMap = writeLocalized(s[mapKey], prev.locale, path);
+              const next = { ...s, [mapKey]: nextMap };
+              if (Object.keys(nextMap).length === 0) delete next[mapKey];
+              return next;
+            }),
+          },
+        };
+      });
+    },
+    [setState],
+  );
+
   const handleDropScreenshot = React.useCallback(
     async (slide: Slide, slot: DeviceElementId, file: File) => {
       const result = await uploadImageFile(file);
@@ -741,10 +771,10 @@ export function ScreenshotEditor() {
         toast.error(result.error);
         return;
       }
-      patchSlide(slide.id, slot === "device" ? { screenshot: result.path } : { screenshotSecondary: result.path });
+      setSlideScreenshot(slide, slot, result.path);
       toast.success(m.editor.screenshotPlaced);
     },
-    [m, patchSlide],
+    [m, setSlideScreenshot],
   );
 
   const applyBackgroundToDeck = React.useCallback(() => {
@@ -1078,6 +1108,8 @@ export function ScreenshotEditor() {
     for (const s of slides) {
       addImg(s.screenshot);
       addImg(s.screenshotSecondary);
+      for (const p of Object.values(s.screenshotByLocale || {})) addImg(p);
+      for (const p of Object.values(s.screenshotSecondaryByLocale || {})) addImg(p);
       for (const p of backgroundAssetPaths(s, opts.locales)) needed.add(p);
       for (const el of s.elements) if (el.kind === "image") addImg(el.src);
     }
@@ -1433,7 +1465,9 @@ export function ScreenshotEditor() {
               clipboardMode={clipboardMode}
               slideIndex={currentSlides.findIndex((s) => s.id === activeSlide.id)}
               slideCount={currentSlides.length}
+              primaryLocale={state.locales[0]}
               onChange={(patch) => patchSlide(activeSlide.id, patch)}
+              onScreenshotChange={(slot, path) => setSlideScreenshot(activeSlide, slot, path)}
               onThemeChange={(themeId) => setState((p) => ({ ...p, themeId }))}
               onApplyBackgroundToDeck={applyBackgroundToDeck}
               onSpreadPanorama={spreadPanorama}

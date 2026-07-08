@@ -34,7 +34,9 @@ type Props = {
   clipboardMode: ClipboardMode;
   slideIndex: number;
   slideCount: number;
+  primaryLocale: string;
   onChange: (patch: Partial<Slide>) => void;
+  onScreenshotChange: (slot: "device" | "deviceSecondary", path: string) => void;
   onThemeChange: (id: ThemeId) => void;
   onApplyBackgroundToDeck: () => void;
   onSpreadPanorama: (count: number) => void;
@@ -58,7 +60,9 @@ export function Inspector({
   clipboardMode,
   slideIndex,
   slideCount,
+  primaryLocale,
   onChange,
+  onScreenshotChange,
   onThemeChange,
   onApplyBackgroundToDeck,
   onSpreadPanorama,
@@ -74,6 +78,11 @@ export function Inspector({
   const { layoutLabel, layoutHint, messages: m } = useI18n();
   const isFeatureGraphic = slide.layout === "feature-graphic";
   const isNoDevice = slide.layout === "no-device";
+  // Screenshots mirror localized text: the primary locale edits the shared
+  // path; other locales edit their own override and fall back to the shared one.
+  const editingOverrideLocale = locale !== primaryLocale;
+  const primaryOverride = slide.screenshotByLocale?.[locale];
+  const secondaryOverride = slide.screenshotSecondaryByLocale?.[locale];
 
   return (
     <div className="flex h-full flex-col">
@@ -132,9 +141,16 @@ export function Inspector({
             </Label>
             <ScreenshotPicker
               label={m.inspector.primary}
-              value={slide.screenshot}
-              onChange={(v) => onChange({ screenshot: v })}
+              value={primaryOverride ?? slide.screenshot}
+              onChange={(v) => onScreenshotChange("device", v)}
             />
+            {editingOverrideLocale && (
+              <p className="text-[10px] leading-snug text-muted-foreground">
+                {primaryOverride
+                  ? m.picker.localizedScreenshot(locale)
+                  : m.picker.sharedScreenshot(locale)}
+              </p>
+            )}
           </div>
         )}
 
@@ -143,9 +159,16 @@ export function Inspector({
             <Label className="text-xs">{m.inspector.backDeviceScreenshot}</Label>
             <ScreenshotPicker
               label={m.inspector.secondaryBackLayer}
-              value={slide.screenshotSecondary || ""}
-              onChange={(v) => onChange({ screenshotSecondary: v })}
+              value={secondaryOverride ?? slide.screenshotSecondary ?? ""}
+              onChange={(v) => onScreenshotChange("deviceSecondary", v)}
             />
+            {editingOverrideLocale && (
+              <p className="text-[10px] leading-snug text-muted-foreground">
+                {secondaryOverride
+                  ? m.picker.localizedScreenshot(locale)
+                  : m.picker.sharedScreenshot(locale)}
+              </p>
+            )}
           </div>
         )}
 
