@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import JSZip from "jszip";
-import { getFontEmbedCSS, toJpeg, toPng } from "html-to-image";
+import { getFontEmbedCSS, toCanvas } from "html-to-image";
 import { Toaster, toast } from "sonner";
 import { backgroundAssetPaths } from "@/lib/background";
 import {
@@ -71,6 +71,12 @@ type TextClipboardPayload = {
   version: 1;
   text: string;
   style: TextClipboardStyle;
+};
+
+type ExportRenderJob = {
+  key: string;
+  slide: Slide;
+  locale: string;
 };
 
 function initialClipboardMode(): ClipboardMode {
@@ -230,6 +236,180 @@ const IS_SAFARI =
   typeof navigator !== "undefined" &&
   /^((?!chrome|chromium|crios|android|edg|fxios|firefox).)*safari/i.test(navigator.userAgent);
 
+const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+
+const PNG_CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let value = n;
+    for (let bit = 0; bit < 8; bit++) {
+      value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    }
+    table[n] = value >>> 0;
+  }
+  return table;
+})();
+
+function pngCrc32(bytes: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) crc = PNG_CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type: string, data: Uint8Array): Uint8Array {
+  const chunk = new Uint8Array(data.length + 12);
+  const view = new DataView(chunk.buffer);
+  view.setUint32(0, data.length);
+  for (let i = 0; i < 4; i++) chunk[4 + i] = type.charCodeAt(i);
+  chunk.set(data, 8);
+  view.setUint32(data.length + 8, pngCrc32(chunk.subarray(4, data.length + 8)));
+  return chunk;
+}
+
+async function bytesToDataUrl(bytes: Uint8Array): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const buffer = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(buffer).set(bytes);
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(new Blob([buffer], { type: "image/png" }));
+  });
+}
+
+// Browser canvas PNG export is RGBA even for an opaque 2D context. App Store
+// Connect rejects files that merely contain an alpha channel, so encode a PNG
+// with color type 2 (truecolor RGB) ourselves after flattening onto white.
+async function canvasToOpaquePng(canvas: HTMLCanvasElement): Promise<string> {
+  const opaque = document.createElement("canvas");
+  opaque.width = canvas.width;
+  opaque.height = canvas.height;
+  const context = opaque.getContext("2d", { alpha: false });
+  if (!context) throw new Error("Could not create an opaque PNG canvas");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, opaque.width, opaque.height);
+  context.drawImage(canvas, 0, 0);
+
+  const rgba = context.getImageData(0, 0, opaque.width, opaque.height).data;
+  const stride = opaque.width * 3 + 1;
+  const scanlines = new Uint8Array(stride * opaque.height);
+  for (let y = 0; y < opaque.height; y++) {
+    const rowStart = y * stride;
+    scanlines[rowStart] = 1; // PNG Sub filter for materially smaller files.
+    let source = y * opaque.width * 4;
+    let target = rowStart + 1;
+    for (let x = 0; x < opaque.width; x++) {
+      for (let channel = 0; channel < 3; channel++) {
+        const value = rgba[source + channel];
+        const left = x === 0 ? 0 : rgba[source + channel - 4];
+        scanlines[target++] = (value - left + 256) & 0xff;
+      }
+      source += 4;
+    }
+  }
+
+  if (typeof CompressionStream === "undefined") {
+    throw new Error("RGB PNG export requires a browser with CompressionStream support");
+  }
+  const compression = new CompressionStream("deflate");
+  const compressedPromise = new Response(compression.readable).arrayBuffer();
+  const writer = compression.writable.getWriter();
+  await writer.write(scanlines);
+  await writer.close();
+  const compressed = new Uint8Array(await compressedPromise);
+
+  const header = new Uint8Array(13);
+  const headerView = new DataView(header.buffer);
+  headerView.setUint32(0, opaque.width);
+  headerView.setUint32(4, opaque.height);
+  header[8] = 8; // bit depth
+  header[9] = 2; // truecolor RGB, deliberately no alpha channel
+
+  const chunks = [
+    PNG_SIGNATURE,
+    pngChunk("IHDR", header),
+    pngChunk("IDAT", compressed),
+    pngChunk("IEND", new Uint8Array()),
+  ];
+  const byteLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const png = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    png.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return bytesToDataUrl(png);
+}
+
+function pixelVariation(data: Uint8ClampedArray): number {
+  const count = data.length / 4;
+  if (!count) return 0;
+  const sums = [0, 0, 0];
+  const squares = [0, 0, 0];
+  for (let i = 0; i < data.length; i += 4) {
+    for (let channel = 0; channel < 3; channel++) {
+      const value = data[i + channel];
+      sums[channel] += value;
+      squares[channel] += value * value;
+    }
+  }
+  return sums.reduce((total, sum, channel) => {
+    const mean = sum / count;
+    return total + Math.sqrt(Math.max(0, squares[channel] / count - mean * mean));
+  }, 0) / 3;
+}
+
+function sampledVariation(
+  source: CanvasImageSource,
+  sx: number,
+  sy: number,
+  sw: number,
+  sh: number,
+): number {
+  const probe = document.createElement("canvas");
+  probe.width = 32;
+  probe.height = 64;
+  const context = probe.getContext("2d", { willReadFrequently: true });
+  if (!context || sw <= 0 || sh <= 0) return 0;
+  context.drawImage(source, sx, sy, sw, sh, 0, 0, probe.width, probe.height);
+  return pixelVariation(context.getImageData(0, 0, probe.width, probe.height).data);
+}
+
+// html-to-image can return a valid-looking file while silently omitting a
+// nested screenshot. Compare each rendered device-screen region with its
+// decoded source and reject exact/near-exact blank regions before zipping.
+function assertExportScreensRendered(el: HTMLElement, canvas: HTMLCanvasElement) {
+  const rootRect = el.getBoundingClientRect();
+  const screenshots = Array.from(
+    el.querySelectorAll<HTMLImageElement>('img[data-export-screenshot="true"]'),
+  );
+
+  for (const image of screenshots) {
+    const sourceVariation = sampledVariation(
+      image,
+      0,
+      0,
+      image.naturalWidth,
+      image.naturalHeight,
+    );
+    // A genuinely flat source is allowed to remain flat.
+    if (sourceVariation < 1) continue;
+
+    const rect = image.getBoundingClientRect();
+    const insetX = rect.width * 0.08;
+    const insetY = rect.height * 0.05;
+    const x = Math.max(0, rect.left - rootRect.left + insetX);
+    const y = Math.max(0, rect.top - rootRect.top + insetY);
+    const width = Math.min(canvas.width - x, rect.width - insetX * 2);
+    const height = Math.min(canvas.height - y, rect.height - insetY * 2);
+    const outputVariation = sampledVariation(canvas, x, y, width, height);
+
+    if (outputVariation < 0.5) {
+      throw new Error("device screenshot was omitted while rasterizing");
+    }
+  }
+}
+
 function initialSlug(): string {
   if (typeof window === "undefined") return DEFAULT_PROJECT_SLUG;
   try {
@@ -247,15 +427,17 @@ export function ScreenshotEditor() {
   const [activeSlideId, setActiveSlideId] = React.useState<string | null>(null);
   const [selectedElementId, setSelectedElementId] = React.useState<SelectableId | null>(null);
   const [exporting, setExporting] = React.useState<string | null>(null);
-  // Mounts the off-screen full-resolution export canvases (export-time only).
-  const [exportArmed, setExportArmed] = React.useState(false);
+  // Mount exactly one fresh off-screen canvas per exported file. Reusing a
+  // large deck here makes Chromium intermittently drop nested data-URL images
+  // from html-to-image's foreignObject clone during long batch exports.
+  const [exportRenderJob, setExportRenderJob] = React.useState<ExportRenderJob | null>(null);
   const [exportOpen, setExportOpen] = React.useState(false);
   const [ready, setReady] = React.useState(false);
-  const [exportLocaleOverride, setExportLocaleOverride] = React.useState<string | null>(null);
   const [viewMode, setViewMode] = React.useState<EditorViewMode>("edit");
   const [clipboardMode, setClipboardModeState] =
     React.useState<ClipboardMode>(initialClipboardMode);
-  const exportRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+  const exportRef = React.useRef<HTMLDivElement | null>(null);
+  const exportJobSequence = React.useRef(0);
   const clipboardModeRef = React.useRef<ClipboardMode>(clipboardMode);
   const textClipboardRef = React.useRef<TextClipboardPayload | null>(null);
 
@@ -441,8 +623,6 @@ export function ScreenshotEditor() {
         };
       });
       setActiveSlideId((cur) => (cur === id ? fallback?.id || null : cur));
-      delete exportRefs.current[id];
-
       toast(m.editor.slideDeleted, {
         action: {
           label: m.editor.undo,
@@ -1061,21 +1241,48 @@ export function ScreenshotEditor() {
       return;
     }
 
-    // The off-screen full-resolution canvases are mounted ONLY while an export
-    // runs. Keeping N full-res slide trees (with blur/shadow filters and big
-    // images) permanently alive was a major browser memory/CPU drain — they
-    // re-rendered on every keystroke and drag. Arm, wait for refs, run, tear down.
-    setExportArmed(true);
     try {
-      for (let i = 0; i < 30 && !slides.every((s) => exportRefs.current[s.id]); i++) {
-        await waitForPaint();
-      }
       await runExport(opts, slides);
     } finally {
-      setExportArmed(false);
-      setExportLocaleOverride(null);
+      exportRef.current = null;
+      setExportRenderJob(null);
       setExporting(null);
     }
+  }
+
+  async function mountExportJob(slide: Slide, locale: string): Promise<HTMLDivElement> {
+    const key = `${slide.id}:${locale}:${++exportJobSequence.current}`;
+    exportRef.current = null;
+    setExportRenderJob({ key, slide, locale });
+
+    for (let i = 0; i < 60; i++) {
+      await waitForPaint();
+      // React mutates the ref during the awaited commit; make that external
+      // mutation explicit to TypeScript after we deliberately cleared it.
+      const el = exportRef.current as HTMLDivElement | null;
+      if (el?.dataset.exportKey !== key) continue;
+
+      const images = Array.from(el.querySelectorAll<HTMLImageElement>("img[src]"));
+      await Promise.all(images.map(async (image) => {
+        if (!image.complete || image.naturalWidth === 0) await image.decode();
+        if (!image.complete || image.naturalWidth === 0) {
+          throw new Error("export image did not decode");
+        }
+      }));
+      await waitForPaint();
+      return el;
+    }
+
+    throw new Error("export render target did not mount");
+  }
+
+  async function unmountExportJob() {
+    exportRef.current = null;
+    setExportRenderJob(null);
+    await waitForPaint();
+    // Give the browser time to release the previous foreignObject/image tree.
+    // This is deliberately paced for reliable large App Store batches.
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
   async function runExport(opts: ExportOptions, slides: Slide[]) {
@@ -1141,19 +1348,8 @@ export function ScreenshotEditor() {
     // Compute the @font-face embed CSS once — html-to-image otherwise
     // re-fetches and re-inlines every font for every single capture.
     let fontEmbedCSS: string | undefined;
-    const probeEl = slides.map((s) => exportRefs.current[s.id]).find(Boolean);
-    if (probeEl) {
-      try {
-        fontEmbedCSS = await getFontEmbedCSS(probeEl);
-      } catch {
-        fontEmbedCSS = undefined;
-      }
-    }
 
     for (const locale of opts.locales) {
-      setExportLocaleOverride(locale);
-      await waitForPaint();
-
       for (const size of opts.sizes) {
         // Uniform downscale so smaller sizes shrink instead of getting cropped
         // by html-to-image.
@@ -1163,14 +1359,32 @@ export function ScreenshotEditor() {
           const slide = slides[i];
           unit += 1;
           setExporting(`${unit}/${totalUnits}`);
-          const el = exportRefs.current[slide.id];
-          if (!el) {
-            failed += 1;
-            errors.push(`${locale} ${size.w}×${size.h} slide ${i + 1}: render target missing`);
-            continue;
-          }
           try {
-            const dataUrl = await captureSlide(el, size.w, size.h, scale, opts, fontEmbedCSS);
+            let dataUrl = "";
+            let lastError: unknown;
+
+            // A retry always gets a newly-mounted image tree. Retrying the same
+            // cloned DOM is ineffective when foreignObject has already lost an
+            // image resource under memory pressure.
+            for (let attempt = 0; attempt < 3 && !dataUrl; attempt++) {
+              try {
+                const el = await mountExportJob(slide, locale);
+                if (fontEmbedCSS === undefined) {
+                  try {
+                    fontEmbedCSS = await getFontEmbedCSS(el);
+                  } catch {
+                    fontEmbedCSS = "";
+                  }
+                }
+                dataUrl = await captureSlide(el, size.w, size.h, scale, opts, fontEmbedCSS);
+              } catch (error) {
+                lastError = error;
+                if (attempt === 2) throw error;
+              } finally {
+                await unmountExportJob();
+              }
+            }
+            if (!dataUrl) throw lastError || new Error("render produced no image");
             const slideNo = opts.scope === "current"
               ? currentSlides.findIndex((s) => s.id === slide.id) + 1
               : i + 1;
@@ -1194,7 +1408,6 @@ export function ScreenshotEditor() {
       }
     }
 
-    setExportLocaleOverride(null);
     setExporting(null);
 
     if (okCount > 0) {
@@ -1254,14 +1467,16 @@ export function ScreenshotEditor() {
     el.style.transformOrigin = "top left";
     el.style.zIndex = "-1";
     try {
-      // Decode every image up front. Safari serializes an empty box for images
-      // that aren't decoded yet when html-to-image rasterizes the foreignObject,
-      // which is what makes mockup screens come out black there.
-      await Promise.all(
-        Array.from(el.querySelectorAll("img")).map((im) =>
-          im.decode ? im.decode().catch(() => {}) : Promise.resolve(),
-        ),
-      );
+      // Decode every image up front. Missing decodes must fail loudly so the
+      // caller can remount a fresh export tree and retry the file.
+      await Promise.all(Array.from(el.querySelectorAll<HTMLImageElement>("img[src]")).map(
+        async (image) => {
+          if (!image.complete || image.naturalWidth === 0) await image.decode();
+          if (!image.complete || image.naturalWidth === 0) {
+            throw new Error("export image did not decode");
+          }
+        },
+      ));
       const options = {
         width: w,
         height: h,
@@ -1269,20 +1484,30 @@ export function ScreenshotEditor() {
         cacheBust: false,
         ...(fontEmbedCSS !== undefined ? { fontEmbedCSS } : {}),
       };
-      const run = () =>
-        opts.format === "jpg"
-          ? toJpeg(el, { ...options, quality: opts.quality, backgroundColor: "#ffffff" })
-          : toPng(el, options);
-      // Safari (WebKit) still drops foreignObject images on the first pass even
-      // after decode — running the capture a few extra times warms it so the
-      // final pass includes the screenshots. Chrome renders correctly first
-      // time, so we only repeat on Safari.
-      const passes = IS_SAFARI ? 3 : 1;
+      const run = async () => {
+        const canvas = await toCanvas(el, { ...options, backgroundColor: "#ffffff" });
+        assertExportScreensRendered(el, canvas);
+        return opts.format === "jpg"
+          ? canvas.toDataURL("image/jpeg", opts.quality)
+          : canvasToOpaquePng(canvas);
+      };
+      // The first html-to-image pass is a warm-up pass. Even Chromium can
+      // intermittently omit nested data-URL images from foreignObject while a
+      // bulk export is switching locales, which leaves otherwise-valid device
+      // mockups with blank screens. Always capture twice and keep only the last
+      // result; WebKit gets one additional pass because it is less reliable.
+      const passes = IS_SAFARI ? 3 : 2;
       let dataUrl = "";
+      let lastError: unknown;
       for (let i = 0; i < passes; i++) {
-        dataUrl = await run();
+        try {
+          dataUrl = await run();
+        } catch (error) {
+          lastError = error;
+        }
         if (i < passes - 1) await new Promise((r) => setTimeout(r, 80));
       }
+      if (!dataUrl) throw lastError || new Error("render produced no image");
       return dataUrl;
     } finally {
       el.style.left = prev.left || "-99999px";
@@ -1490,10 +1715,8 @@ export function ScreenshotEditor() {
         </aside>
       </div>
 
-      {/* Off-screen export container — full-resolution canvases for html-to-image.
-          Mounted ONLY while exporting: keeping every slide alive at 1320×2868 with
-          blur/shadow filters ate hundreds of MB and re-rendered on every edit. */}
-      {exportArmed && (
+      {/* A single fresh full-resolution canvas for the current export unit. */}
+      {exportRenderJob && (
         <div
           aria-hidden
           style={{
@@ -1503,27 +1726,23 @@ export function ScreenshotEditor() {
             pointerEvents: "none",
           }}
         >
-          {currentSlides.map((slide) => (
-            <div
-              key={slide.id}
-              ref={(el) => {
-                if (el) exportRefs.current[slide.id] = el;
-                else delete exportRefs.current[slide.id];
-              }}
-              style={{ width: cW, height: cH, position: "absolute", left: -99999, top: 0 }}
-            >
-              <SlideCanvas
-                slide={slide}
-                device={state.device}
-                orientation={state.orientation}
-                theme={theme}
-                locale={exportLocaleOverride ?? state.locale}
-                appName={state.appName}
-                appIcon={state.appIcon}
-                hideEmpty
-              />
-            </div>
-          ))}
+          <div
+            key={exportRenderJob.key}
+            ref={exportRef}
+            data-export-key={exportRenderJob.key}
+            style={{ width: cW, height: cH, position: "absolute", left: -99999, top: 0 }}
+          >
+            <SlideCanvas
+              slide={exportRenderJob.slide}
+              device={state.device}
+              orientation={state.orientation}
+              theme={theme}
+              locale={exportRenderJob.locale}
+              appName={state.appName}
+              appIcon={state.appIcon}
+              hideEmpty
+            />
+          </div>
         </div>
       )}
     </div>

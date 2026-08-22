@@ -130,6 +130,7 @@ export function Phone({ src, alt = "", style, hideEmpty, shadow, frameColor, onD
       >
         {resolved ? (
           <img
+            data-export-screenshot="true"
             src={resolved}
             alt={alt}
             style={{ display: "block", width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
@@ -198,6 +199,7 @@ function CssFrame({
         <div style={{ position: "absolute", overflow: "hidden", background: "#000", ...spec.screen }}>
           {resolved ? (
             <img
+              data-export-screenshot="true"
               src={resolved}
               alt={alt || ""}
               style={{ display: "block", width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
